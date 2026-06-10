@@ -107,11 +107,14 @@ def respond(req: GuidanceRequest, state: ScenarioState) -> GuidanceResponse:
         rec = state.recommend(minute=req.minute)
         best = next(c for c in rec.candidates if c.routeId == rec.recommendedRouteId)
         first_moves = " Then ".join(_lower(m.instruction) + "." for m in best.maneuvers[1:3])
-        text = (f"Based on this simulation, follow the blue route: {best.name}. "
+        dest_part = f" toward {rec.destination.name}" if rec.destination else ""
+        live_part = (" Directions are live Google Maps data."
+                     if rec.source == "google_directions" else "")
+        text = (f"Based on this simulation, follow the blue route: {best.name}{dest_part}. "
                 f"{best.maneuvers[0].instruction}. {first_moves} "
                 f"It scored best across modeled fire buffer (~{best.fireArrivalBufferMinutes:.0f} min), "
                 f"smoke exposure ({best.smokeExposureScore:.0f}/100) and travel time, with "
-                f"{best.confidence:.0%} route confidence. {_safety_line(seed)}")
+                f"{best.confidence:.0%} route confidence.{live_part} {_safety_line(seed)}")
         actions.append(GuidanceAction(type="reroute", detail=best.routeId))
         rerouted = True
 

@@ -135,6 +135,15 @@ class CandidateRoute(BaseModel):
     score: Optional[RouteScore] = None
 
 
+class SafeZone(BaseModel):
+    id: str
+    name: str
+    lon: float
+    lat: float
+    kind: str
+    notes: str
+
+
 class RouteRecommendation(BaseModel):
     recommendedRouteId: str
     candidates: List[CandidateRoute]
@@ -142,6 +151,8 @@ class RouteRecommendation(BaseModel):
     whyNotFastest: str
     safetyReminder: str = SAFETY_DISCLAIMER
     generatedAtMinute: float
+    source: Literal["demo_graph", "google_directions"] = "demo_graph"
+    destination: Optional[SafeZone] = None
 
 
 class SimulationRequest(BaseModel):
@@ -149,7 +160,7 @@ class SimulationRequest(BaseModel):
     windFromDeg: float = 12.0  # Santa Ana event: wind FROM the NNE
     fireIntensity: float = Field(default=0.85, ge=0.1, le=1.0)
     nowMinute: float = 0.0
-    horizonMinutes: float = 75.0
+    horizonMinutes: float = 90.0
 
 
 class SimulationResult(BaseModel):
@@ -178,7 +189,7 @@ class RouteRequest(BaseModel):
     headingDeg: float = 180.0
     minute: float = 0.0
     profileId: str = "standard_adult"
-    destinationId: str = "santa_monica_staging"
+    destinationId: Optional[str] = None  # None -> auto-select nearest viable safe zone
     conditions: RouteConditions = RouteConditions()
 
 
@@ -208,6 +219,8 @@ class GuidanceResponse(BaseModel):
 
 class AdvanceRequest(BaseModel):
     meters: float = 91.44  # 300 ft
+    minute: Optional[float] = None  # sync the sim clock (lets the safe-zone
+    # watcher run while the user is parked at a staging area)
 
 
 class DeviateRequest(BaseModel):
@@ -223,15 +236,10 @@ class AdvanceResult(BaseModel):
     remainingBufferMinutes: float = 0.0
     smokeDensityHere: float = 0.0
     arrived: bool = False
-
-
-class SafeZone(BaseModel):
-    id: str
-    name: str
-    lon: float
-    lat: float
-    kind: str
-    notes: str
+    destination: Optional[SafeZone] = None
+    safeZoneChanged: bool = False
+    safeZoneNote: str = ""
+    recommendation: Optional[RouteRecommendation] = None  # set when auto re-routed
 
 
 class ScenarioInfo(BaseModel):

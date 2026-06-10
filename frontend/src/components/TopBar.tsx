@@ -3,9 +3,11 @@ import { setMuted } from "../lib/speech";
 
 export default function TopBar() {
   const scenario = useApp((s) => s.scenario);
+  const config = useApp((s) => s.config);
   const muted = useApp((s) => s.muted);
   const setMutedState = useApp((s) => s.setMutedState);
   const sim = useApp((s) => s.sim);
+  const live = config?.googleEnabled ?? false;
 
   return (
     <header className="glass-strong z-30 flex h-14 shrink-0 items-center gap-4 border-b border-white/10 px-4">
@@ -33,6 +35,14 @@ export default function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
+        <span
+          title={config?.modeLabel ?? ""}
+          className={`rounded-md px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider ${
+            live ? "bg-sky-500/15 text-sky-300" : "bg-slate-500/15 text-slate-300"
+          }`}
+        >
+          {live ? "⚡ GOOGLE LIVE" : "TWIN MODE"}
+        </span>
         <span
           className={`rounded-md px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider ${
             sim ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"

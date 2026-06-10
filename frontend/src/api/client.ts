@@ -2,11 +2,15 @@
 
 import type {
   AdvanceResult,
+  AppConfig,
+  ElevationGridPayload,
   GeoCollection,
   GuidanceResponse,
   JudgeScript,
+  LiveWind,
   PersonProfile,
   RouteRecommendation,
+  SafeZoneStatusT,
   ScenarioInfo,
   SimulationParams,
   SimulationResult,
@@ -28,6 +32,13 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   health: () => http<{ status: string }>("/health"),
+  config: () => http<AppConfig>("/config"),
+  terrainGrid: () => http<ElevationGridPayload>("/terrain/grid"),
+  liveWind: () => http<LiveWind>("/weather/live"),
+  safeZones: (minute: number) =>
+    http<{ minute: number; activeDestinationId: string | null; statuses: SafeZoneStatusT[] }>(
+      `/safezones?minute=${minute.toFixed(1)}`,
+    ),
   scenario: () => http<ScenarioInfo>("/scenario/palisades-demo"),
   profiles: () => http<PersonProfile[]>("/profiles"),
   dataset: <T = GeoCollection>(path: string) => http<T>(path),
@@ -52,8 +63,11 @@ export const api = {
   guidance: (body: { text: string; minute: number; position?: [number, number] }) =>
     http<GuidanceResponse>("/guidance/respond", { method: "POST", body: JSON.stringify(body) }),
 
-  advance: (meters: number) =>
-    http<AdvanceResult>("/user/advance", { method: "POST", body: JSON.stringify({ meters }) }),
+  advance: (meters: number, minute?: number) =>
+    http<AdvanceResult>("/user/advance", {
+      method: "POST",
+      body: JSON.stringify(minute === undefined ? { meters } : { meters, minute }),
+    }),
 
   deviate: (mode: "missed_turn" | "off_route" | "blocked") =>
     http<UserPosition>("/user/deviate", { method: "POST", body: JSON.stringify({ mode }) }),

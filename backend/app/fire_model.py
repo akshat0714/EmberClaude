@@ -64,7 +64,7 @@ N_DIRECTIONS = 16
 MIN_CONFIDENCE = 0.12
 FULL_BURN_MINUTES = 22.0   # cells burn at full intensity this long...
 DECAY_TAU_MINUTES = 30.0   # ...then decay toward burned-out
-TIMELINE_MINUTES = list(range(0, 80, 5))
+TIMELINE_MINUTES = list(range(0, 95, 5))
 
 DEFAULTS = SimulationRequest()
 
@@ -113,9 +113,18 @@ def _intensity_mult(intensity: float) -> float:
     return 0.55 + 0.65 * intensity
 
 
+SlopeFn = Callable[[float, float, float, float], float]
+
+
 def simulate_cells(params: SimulationRequest,
-                   fuel_at: Callable[[float, float], float]) -> List[Cell]:
-    """Fast-marching sweep: earliest ignition time wins at every lattice cell."""
+                   fuel_at: Callable[[float, float], float],
+                   slope_fn: Optional[SlopeFn] = None) -> List[Cell]:
+    """Fast-marching sweep: earliest ignition time wins at every lattice cell.
+
+    slope_fn lets callers inject REAL terrain gradients (Google Elevation
+    grid); the analytic twin heightfield is the default.
+    """
+    slope_of = slope_fn or geo.slope_along
     horizon = params.horizonMinutes
     cells: Dict[Tuple[int, int], Cell] = {}
     heap: List[Tuple[float, int, Tuple[int, int]]] = []
@@ -161,7 +170,7 @@ def simulate_cells(params: SimulationRequest,
             fuel = fuel_at(nlon, nlat)
             if fuel < 0.08:
                 continue  # ocean / bare ground does not carry fire
-            slope = geo.slope_along(cell.lon, cell.lat, nlon, nlat)
+            slope = slope_of(cell.lon, cell.lat, nlon, nlat)
             align = _align_mult(bearing, params.windFromDeg)
             jitter = 0.85 + 0.30 * geo.hash_noise(nkey[0], nkey[1])
             rate = (BASE_RATE_M_PER_MIN * wind_mult * align * _fuel_mult(fuel)
@@ -432,8 +441,9 @@ def _risk_zones(cells: List[Cell], minute: int, params: SimulationRequest,
 
 
 def run_simulation(params: SimulationRequest,
-                   fuel_at: Callable[[float, float], float]) -> SimulationResult:
-    cells = simulate_cells(params, fuel_at)
+                   fuel_at: Callable[[float, float], float],
+                   slope_fn: Optional[SlopeFn] = None) -> SimulationResult:
+    cells = simulate_cells(params, fuel_at, slope_fn)
     is_default = (abs(params.windFromDeg - DEFAULTS.windFromDeg) < 1e-6
                   and abs(params.windSpeedMph - DEFAULTS.windSpeedMph) < 1e-6
                   and abs(params.fireIntensity - DEFAULTS.fireIntensity) < 1e-6)

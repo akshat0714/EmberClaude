@@ -1,17 +1,19 @@
 """In-memory scenario session: one simulated resident, one live fire model.
 
-Holds the cached fire simulation (recomputed when scenario dials change),
-the user's position along the active route, hazard conditions reported by
-the user, and the latest route recommendation. v1 is a single demo
-session; swap for per-session storage when multi-user support lands.
+Owns the cached fire simulation (real Google-elevation slopes when a key is
+configured), the resident's position along the active route, user-reported
+hazard conditions, the latest recommendation, and — central to the live
+experience — the DYNAMIC safe-zone destination: every advance re-checks the
+predicted spread, and when it encroaches on the active safe zone the
+destination relocates and the route re-plans automatically.
 """
 
 from __future__ import annotations
 
-import math
 from typing import List, Optional, Tuple
 
-from . import demo_world, fire_model, geo, route_engine
+from . import demo_world, fire_model, geo, google_maps, route_engine, safe_zones
+from .google_config import google_enabled
 from .models import (
     AdvanceResult,
     CandidateRoute,
@@ -31,10 +33,14 @@ class ScenarioState:
 
     def reset(self, params: Optional[SimulationRequest] = None) -> None:
         self.params = params or SimulationRequest()
-        self.cells = fire_model.simulate_cells(self.params, demo_world.fuel_at)
+        # Real terrain gradients (Google Elevation grid) when available;
+        # the analytic twin heightfield otherwise.
+        self.slope_fn = google_maps.slope_function(demo_world.SCENE_BOUNDS)
+        self.cells = fire_model.simulate_cells(self.params, demo_world.fuel_at, self.slope_fn)
         self.sim: Optional[SimulationResult] = None
         self.profile_id = "standard_adult"
         self.conditions = RouteConditions()
+        self.destination_id: Optional[str] = None  # None -> auto-select nearest viable
         self.user = UserPosition(
             lon=demo_world.USER_START[0], lat=demo_world.USER_START[1],
             headingDeg=160.0, minute=0.0, status="idle")
@@ -47,13 +53,13 @@ class ScenarioState:
     def run_simulation(self, params: SimulationRequest) -> SimulationResult:
         if params != self.params or self.sim is None:
             self.params = params
-            self.cells = fire_model.simulate_cells(params, demo_world.fuel_at)
-            self.sim = fire_model.run_simulation(params, demo_world.fuel_at)
+            self.cells = fire_model.simulate_cells(params, demo_world.fuel_at, self.slope_fn)
+            self.sim = fire_model.run_simulation(params, demo_world.fuel_at, self.slope_fn)
         return self.sim
 
     def ensure_sim(self) -> SimulationResult:
         if self.sim is None:
-            self.sim = fire_model.run_simulation(self.params, demo_world.fuel_at)
+            self.sim = fire_model.run_simulation(self.params, demo_world.fuel_at, self.slope_fn)
         return self.sim
 
     def profile(self) -> PersonProfile:
@@ -61,6 +67,10 @@ class ScenarioState:
                     demo_world.PROFILES[0])
 
     # -- hazard lookups for the route engine ---------------------------------
+
+    def fire_arrival(self, lon: float, lat: float) -> float:
+        return fire_model.fire_arrival_minute(
+            self.cells, lon, lat, self.params, fuel_at=demo_world.fuel_at)
 
     def _smoke_density(self, lon: float, lat: float, minute: float) -> float:
         sim = self.ensure_sim()
@@ -70,16 +80,38 @@ class ScenarioState:
 
     def hazard_context(self) -> route_engine.HazardContext:
         return route_engine.HazardContext(
-            fire_arrival=lambda lon, lat: fire_model.fire_arrival_minute(
-                self.cells, lon, lat, self.params, fuel_at=demo_world.fuel_at),
+            fire_arrival=self.fire_arrival,
             smoke_density=self._smoke_density,
             conditions=self.conditions)
+
+    # -- dynamic safe-zone destination ----------------------------------------
+
+    def zone_statuses(self, minute: float) -> List[safe_zones.SafeZoneStatus]:
+        return safe_zones.evaluate_zones(self.cells, minute, self.fire_arrival)
+
+    def _resolve_destination(self, minute: float,
+                             forced_id: Optional[str] = None) -> safe_zones.SafeZoneStatus:
+        statuses = self.zone_statuses(minute)
+        if forced_id:
+            forced = next((s for s in statuses if s.zone.id == forced_id), None)
+            if forced is not None:
+                self.destination_id = forced.zone.id
+                return forced
+        if self.destination_id:
+            current = next((s for s in statuses if s.zone.id == self.destination_id), None)
+            # Stability: keep the active destination until it is compromised,
+            # so the plan doesn't oscillate between near-equal zones.
+            if current is not None and current.status != "compromised":
+                return current
+        chosen = safe_zones.select_destination(statuses, (self.user.lon, self.user.lat))
+        self.destination_id = chosen.zone.id
+        return chosen
 
     # -- routing --------------------------------------------------------------
 
     def recommend(self, position: Optional[Tuple[float, float]] = None,
                   heading: Optional[float] = None, minute: Optional[float] = None,
-                  destination_id: str = demo_world.DEFAULT_DESTINATION,
+                  destination_id: Optional[str] = None,
                   reroute: bool = False) -> RouteRecommendation:
         if position is not None:
             self.user.lon, self.user.lat = position
@@ -87,9 +119,22 @@ class ScenarioState:
             self.user.headingDeg = heading
         if minute is not None:
             self.user.minute = minute
-        rec = route_engine.recommend_routes(
-            (self.user.lon, self.user.lat), self.user.headingDeg, self.user.minute,
-            self.profile(), self.hazard_context(), destination_id, reroute=reroute)
+        dest_status = self._resolve_destination(self.user.minute, destination_id)
+        zone = dest_status.zone
+
+        rec: Optional[RouteRecommendation] = None
+        if google_enabled():
+            try:
+                rec = route_engine.recommend_routes_google(
+                    (self.user.lon, self.user.lat), self.user.headingDeg,
+                    self.user.minute, self.profile(), self.hazard_context(),
+                    zone, reroute=reroute)
+            except google_maps.GoogleUnavailable:
+                rec = None  # fall through to the demo graph
+        if rec is None:
+            rec = route_engine.recommend_routes(
+                (self.user.lon, self.user.lat), self.user.headingDeg, self.user.minute,
+                self.profile(), self.hazard_context(), zone.id, reroute=reroute)
         self.last_recommendation = rec
         self.set_active_route(rec.recommendedRouteId)
         return rec
@@ -113,21 +158,53 @@ class ScenarioState:
 
     # -- user movement ---------------------------------------------------------
 
-    def advance(self, meters: float) -> AdvanceResult:
+    def advance(self, meters: float, minute: Optional[float] = None) -> AdvanceResult:
+        if minute is not None:
+            self.user.minute = max(self.user.minute, minute)
         route = self.active_route
-        if route is None or self.user.status == "arrived":
-            return self._status_result()
-        poly = [tuple(p) for p in route.polyline]
-        total = geo.polyline_length_m(poly)
-        speed_mpm = self.profile().travelSpeedMph * 1609.34 / 60.0
-        self.user.routeProgressMeters = min(total, self.user.routeProgressMeters + meters)
-        self.user.minute += meters / speed_mpm
-        (lon, lat), hdg = geo.point_along_polyline(poly, self.user.routeProgressMeters)
-        self.user.lon, self.user.lat, self.user.headingDeg = lon, lat, hdg
-        self.user.onRoute = True
-        if self.user.routeProgressMeters >= total - 20.0:
-            self.user.status = "arrived"
-        return self._status_result()
+        if route is not None and self.user.status != "arrived":
+            poly = [tuple(p) for p in route.polyline]
+            total = geo.polyline_length_m(poly)
+            speed_mpm = self.profile().travelSpeedMph * 1609.34 / 60.0
+            self.user.routeProgressMeters = min(total, self.user.routeProgressMeters + meters)
+            self.user.minute += meters / speed_mpm
+            (lon, lat), hdg = geo.point_along_polyline(poly, self.user.routeProgressMeters)
+            self.user.lon, self.user.lat, self.user.headingDeg = lon, lat, hdg
+            self.user.onRoute = True
+            if self.user.routeProgressMeters >= total - 20.0:
+                self.user.status = "arrived"
+        result = self._status_result()
+        return self._watch_safe_zone(result)
+
+    def _watch_safe_zone(self, result: AdvanceResult) -> AdvanceResult:
+        """The core live-mode loop: if the predicted spread zone now reaches
+        the active safe zone, MOVE the safe zone and re-route immediately."""
+        if self.destination_id is None or self.active_route is None:
+            return result
+        statuses = self.zone_statuses(self.user.minute)
+        current = next((s for s in statuses if s.zone.id == self.destination_id), None)
+        if current is None:
+            return result
+        result.destination = current.zone
+        if current.status != "compromised":
+            return result
+        others = [s for s in statuses if s.zone.id != current.zone.id]
+        replacement = safe_zones.select_destination(others, (self.user.lon, self.user.lat))
+        if replacement.zone.id == current.zone.id:
+            return result
+        old_name = current.zone.name
+        self.destination_id = replacement.zone.id
+        rec = self.recommend(reroute=True)
+        fresh = self._status_result()
+        fresh.destination = replacement.zone
+        fresh.safeZoneChanged = True
+        fresh.safeZoneNote = (
+            f"{old_name} is now inside the modeled predicted spread zone. "
+            f"Redirecting to {replacement.zone.name} and re-routing. "
+            "Follow official evacuation orders.")
+        fresh.recommendation = rec
+        fresh.arrived = False
+        return fresh
 
     def _status_result(self) -> AdvanceResult:
         route = self.active_route
@@ -166,6 +243,8 @@ class ScenarioState:
         instruction = ("You have reached the simulated lower-risk zone. Continue to follow "
                        "official emergency guidance." if arrived else
                        (next_m.instruction if next_m else "Continue on the highlighted route."))
+        dest = (self.last_recommendation.destination
+                if self.last_recommendation else None)
         return AdvanceResult(
             position=user, currentInstruction=instruction,
             nextManeuver=None if arrived else next_m,
@@ -173,7 +252,8 @@ class ScenarioState:
             remainingDistanceMeters=round(remaining, 0),
             remainingBufferMinutes=round(max(0.0, min(buffer_min, 240.0)), 1),
             smokeDensityHere=round(smoke_here, 2),
-            arrived=arrived)
+            arrived=arrived,
+            destination=dest)
 
     def deviate(self, mode: str) -> UserPosition:
         """Push the simulated user off-plan to exercise re-routing."""

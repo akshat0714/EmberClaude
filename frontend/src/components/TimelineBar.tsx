@@ -1,6 +1,6 @@
 import { useApp } from "../state/store";
 
-const TICKS = [0, 5, 10, 15, 20, 30, 45, 60];
+const TICKS = [0, 5, 10, 15, 20, 30, 45, 60, 75, 90];
 
 function simClock(minute: number): string {
   const total = 10 * 60 + 30 + minute; // 10:30 AM PST + sim minutes
@@ -70,7 +70,7 @@ export default function TimelineBar() {
           <input
             type="range"
             min={0}
-            max={75}
+            max={90}
             step={0.25}
             value={simMinute}
             onChange={(e) => setMinute(Number(e.target.value))}
@@ -82,7 +82,7 @@ export default function TimelineBar() {
                 className={`absolute -translate-x-1/2 font-mono text-[9px] ${
                   simMinute >= t ? "text-ember-400" : "text-slate-600"
                 }`}
-                style={{ left: `${(t / 75) * 100}%` }}
+                style={{ left: `${(t / 90) * 100}%` }}
               >
                 {t}
               </span>

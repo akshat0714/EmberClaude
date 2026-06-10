@@ -54,6 +54,8 @@ export default function LeftPanel() {
   const exportScenario = useApp((s) => s.exportScenario);
   const resetScenario = useApp((s) => s.resetScenario);
   const loading = useApp((s) => s.loading);
+  const applyLiveWind = useApp((s) => s.applyLiveWind);
+  const startFromMyLocation = useApp((s) => s.startFromMyLocation);
 
   const windDirLabel = (d: number) => {
     const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
@@ -109,6 +111,9 @@ export default function LeftPanel() {
           unit=""
           onChange={(v) => void setSimParam("fireIntensity", v)}
         />
+        <button className="btn-ghost w-full" onClick={() => void applyLiveWind()}>
+          🌬 Use live wind (Open-Meteo)
+        </button>
         <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2">
           <span className="stat-label">Visibility condition</span>
           <span
@@ -136,6 +141,12 @@ export default function LeftPanel() {
         </select>
         <p className="text-[10px] leading-snug text-slate-500">
           {profiles.find((p) => p.id === profileId)?.description ?? ""}
+        </p>
+        <button className="btn-ghost w-full" onClick={() => startFromMyLocation()}>
+          ⊕ Start from my location
+        </button>
+        <p className="text-center text-[9px] text-slate-600">
+          Uses browser geolocation if you are inside the scenario area.
         </p>
       </section>
 

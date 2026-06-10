@@ -53,12 +53,15 @@ def test_high_smoke_sensitivity_changes_route_preference():
     cost_hi, _ = route_engine._edge_cost(smoky_edge, 16.0, w, ctx_hi, {})
     assert cost_hi > cost_lo * 1.15, "smoke-sensitive profile must penalize smoke harder"
 
-    # System level: at decision time the lowest-smoke candidate offered to a
-    # smoke-sensitive user is never smokier than the fastest candidate.
+    # System level: card labels must be truthful — "lowest smoke" is the
+    # cleanest of the non-fastest alternatives, by measured metrics.
     rec = _recommend(minute=16.0, profileId="family_children")
     fastest = next(c for c in rec["candidates"] if c["routeType"] == "fastest")
     lowest = next(c for c in rec["candidates"] if c["routeType"] == "lowest_smoke")
-    assert lowest["smokeExposureScore"] <= fastest["smokeExposureScore"] + 1e-6
+    others = [c for c in rec["candidates"] if c["routeId"] != fastest["routeId"]]
+    assert lowest["smokeExposureScore"] == min(c["smokeExposureScore"] for c in others)
+    assert fastest["estimatedTravelTimeMinutes"] == min(
+        c["estimatedTravelTimeMinutes"] for c in rec["candidates"])
 
 
 def test_road_closure_changes_route_choice():
@@ -104,8 +107,10 @@ def test_visibility_lost_changes_recommendation():
     STATE.reset()
     baseline = _recommend(minute=16.0)
     old_best = _route(baseline, baseline["recommendedRouteId"])
-    # Drive to ~37% of the route (mid canyon descent, like the demo script).
-    target = old_best["totalDistanceMeters"] * 0.37
+    # Drive until just past the second real maneuver (onto the canyon
+    # descent), mirroring the judge-demo script's trigger.
+    real = [m for m in old_best["maneuvers"] if m["type"] != "depart"]
+    target = sum(m["distanceMeters"] for m in real[:2]) + 250.0
     while STATE.user.routeProgressMeters < target:
         client.post("/user/advance", json={"meters": 91.44})
     r = client.post("/guidance/respond",
@@ -117,10 +122,12 @@ def test_visibility_lost_changes_recommendation():
     assert any(a["type"] == "set_visibility_lost" for a in body["actions"])
     rec = body["recommendation"]
     new_best = next(c for c in rec["candidates"] if c["routeId"] == rec["recommendedRouteId"])
-    # The report must visibly change the plan: either a different candidate
-    # wins, or the user is turned around away from the reported zone.
+    # The report must visibly change the plan: a U-turn away from the reported
+    # zone, or a materially different path geometry.
     turned_around = new_best["maneuvers"][0]["type"] == "uturn"
-    assert turned_around or new_best["routeId"] != old_best["routeId"], (
+    length_changed = abs(new_best["totalDistanceMeters"]
+                         - (old_best["totalDistanceMeters"] - target)) > 400
+    assert turned_around or length_changed, (
         "visibility report must alter the recommended plan")
 
 

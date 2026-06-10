@@ -26,13 +26,55 @@ export function coastLat(lon: number): number {
   return COAST_LAT_AT_REF + COAST_SLOPE * (lon - COAST_REF_LON);
 }
 
+/** Real Google-elevation grid (served by the backend) overrides the
+ * analytic field for all height lookups when present. */
+interface Grid {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+  cols: number;
+  rows: number;
+  heights: number[];
+}
+
+let realGrid: Grid | null = null;
+
+export function setElevationGrid(g: Grid | null): void {
+  realGrid = g;
+}
+
+export function usingRealTerrain(): boolean {
+  return realGrid !== null;
+}
+
+function gridHeight(lon: number, lat: number): number {
+  const g = realGrid!;
+  let fx = ((lon - g.west) / (g.east - g.west)) * (g.cols - 1);
+  let fy = ((lat - g.south) / (g.north - g.south)) * (g.rows - 1);
+  fx = Math.max(0, Math.min(g.cols - 1.001, fx));
+  fy = Math.max(0, Math.min(g.rows - 1.001, fy));
+  const x0 = Math.floor(fx);
+  const y0 = Math.floor(fy);
+  const dx = fx - x0;
+  const dy = fy - y0;
+  const at = (x: number, y: number) => g.heights[y * g.cols + x];
+  return (
+    at(x0, y0) * (1 - dx) * (1 - dy) +
+    at(x0 + 1, y0) * dx * (1 - dy) +
+    at(x0, y0 + 1) * (1 - dx) * dy +
+    at(x0 + 1, y0 + 1) * dx * dy
+  );
+}
+
 function smoothstep(t: number): number {
   const x = Math.max(0, Math.min(1, t));
   return x * x * (3 - 2 * x);
 }
 
-/** Ground height in meters at a lon/lat — same formula as the backend. */
+/** Ground height in meters: real Google grid when loaded, analytic twin otherwise. */
 export function terrainHeightM(lon: number, lat: number): number {
+  if (realGrid) return gridHeight(lon, lat);
   const dCoast = (lat - coastLat(lon)) * M_PER_DEG_LAT;
   if (dCoast <= 0) return -30;
 

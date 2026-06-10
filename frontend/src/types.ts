@@ -121,6 +121,8 @@ export interface RouteRecommendation {
   whyNotFastest: string;
   safetyReminder: string;
   generatedAtMinute: number;
+  source: "demo_graph" | "google_directions";
+  destination?: SafeZone | null;
 }
 
 export interface UserPosition {
@@ -143,6 +145,47 @@ export interface AdvanceResult {
   remainingBufferMinutes: number;
   smokeDensityHere: number;
   arrived: boolean;
+  destination?: SafeZone | null;
+  safeZoneChanged: boolean;
+  safeZoneNote: string;
+  recommendation?: RouteRecommendation | null;
+}
+
+export interface AppConfig {
+  googleEnabled: boolean;
+  googleMapsApiKey: string;
+  liveWindEnabled: boolean;
+  mode: "live_google" | "synthetic_twin";
+  modeLabel: string;
+}
+
+export interface ElevationGridPayload {
+  mode: "google_elevation" | "analytic_twin";
+  west?: number;
+  south?: number;
+  east?: number;
+  north?: number;
+  cols?: number;
+  rows?: number;
+  heights?: number[];
+}
+
+export interface LiveWind {
+  available: boolean;
+  windSpeedMph?: number;
+  windFromDeg?: number;
+  windGustsMph?: number;
+  observedAt?: string;
+  source?: string;
+  note?: string;
+}
+
+export interface SafeZoneStatusT {
+  zone: SafeZone;
+  status: "safe" | "at_risk" | "compromised";
+  bufferMinutes: number;
+  insidePredictedZone: boolean;
+  note: string;
 }
 
 export interface GuidanceAction {

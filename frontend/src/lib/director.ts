@@ -57,6 +57,17 @@ async function drive(until: (progressFrac: number, arrived: boolean) => boolean)
     const r = await useApp.getState().advanceUser(meters);
     if (!r) break;
     useApp.getState().setMinute(r.position.minute);
+    if (r.safeZoneChanged) {
+      // The predicted zone swallowed the destination: the store has already
+      // swapped routes; give the moment room to land before driving on.
+      useApp.getState().setJudge({
+        caption: "PREDICTED ZONE REACHED THE SAFE ZONE — destination moved, re-routing on live data.",
+      });
+      await speakAndWait(r.safeZoneNote);
+      announced.clear();
+      lastManeuverId = null;
+      continue;
+    }
     const total = r.position.routeProgressMeters + r.remainingDistanceMeters;
     const frac = total > 0 ? r.position.routeProgressMeters / total : 0;
 
@@ -149,14 +160,65 @@ async function runStep(step: JudgeStep): Promise<void> {
     }
     case "selectRecommended": {
       const rec = useApp.getState().recommendation;
-      if (rec) app.setActiveRoute(rec.recommendedRouteId);
-      await speakAndWait(step.voice);
-      await sleep(2000);
+      if (rec) {
+        app.setActiveRoute(rec.recommendedRouteId);
+        // Compose the narration from the LIVE recommendation so it is
+        // always true (fastest may or may not have won this run).
+        const destName = rec.destination?.name ?? "the safe zone";
+        const liveTag = rec.source === "google_directions"
+          ? " Directions are live Google Maps data." : "";
+        await speakAndWait(
+          `Recommended simulated route selected toward ${destName}. ` +
+          `${rec.whyNotFastest}${liveTag} Follow official evacuation orders.`);
+      } else {
+        await speakAndWait(step.voice);
+      }
+      await sleep(1500);
       break;
     }
     case "driveUntilProgress": {
-      const target = step.params?.fraction ?? 0.37;
-      await drive((frac) => frac >= target);
+      const past = step.params?.pastManeuvers;
+      if (past !== undefined) {
+        // Geometry-robust trigger: just past the Nth real maneuver.
+        const rec = useApp.getState().recommendation;
+        const route = rec?.candidates.find((c) => c.routeId === useApp.getState().activeRouteId);
+        const real = (route?.maneuvers ?? []).filter((m) => m.type !== "depart");
+        const targetM = real.slice(0, past).reduce((acc, m) => acc + m.distanceMeters, 0)
+          + (step.params?.plusMeters ?? 250);
+        await drive(() => (useApp.getState().user?.routeProgressMeters ?? 0) >= targetM);
+      } else {
+        const target = step.params?.fraction ?? 0.37;
+        await drive((frac) => frac >= target);
+      }
+      break;
+    }
+    case "holdForRelocation": {
+      // Parked at the staging area: keep the replay clock running and let the
+      // backend watcher decide when the predicted zone forces a move.
+      const timeout = step.params?.timeoutMs ?? 45000;
+      app.setPlaybackSpeed(step.params?.speed ?? 8);
+      app.setPlaying(true);
+      const started = performance.now();
+      let moved = false;
+      while (!aborted() && performance.now() - started < timeout) {
+        const r = await useApp.getState().advanceUser(0);
+        if (r?.safeZoneChanged) {
+          useApp.getState().setJudge({
+            caption: "PREDICTED ZONE REACHED THE SAFE ZONE — destination moved, re-routing on live data.",
+          });
+          await speakAndWait(r.safeZoneNote);
+          moved = true;
+          break;
+        }
+        await sleep(900);
+      }
+      useApp.getState().setPlaying(false);
+      if (!moved) {
+        useApp.getState().setJudge({
+          caption: "Prediction held clear of the staging area in this run — continuing.",
+        });
+        await sleep(2500);
+      }
       break;
     }
     case "highlightReroute": {
@@ -182,13 +244,20 @@ async function runStep(step: JudgeStep): Promise<void> {
       const st = useApp.getState();
       const rec = st.recommendation;
       const best = rec?.candidates.find((c) => c.routeId === rec.recommendedRouteId);
+      const relocated = st.transcript.some((m) => m.text.includes("Redirecting to"));
+      const liveLine = rec?.source === "google_directions"
+        ? "Routes were live Google Directions, hazard-scored by the twin's models."
+        : "Routes came from the modeled road graph (set GOOGLE_MAPS_API_KEY for live Google Directions).";
       st.setJudge({
         summary: [
-          `Fire spread modeled over ${st.sim?.minutes.length ?? 0} time steps with live wind inputs.`,
-          `3 candidate routes compared; recommended ≠ fastest (modeled buffer ${best?.fireArrivalBufferMinutes.toFixed(0) ?? "–"} min).`,
+          `Fire spread modeled over ${st.sim?.minutes.length ?? 0} time steps using wind + terrain inputs.`,
+          `Candidate routes compared and scored (final modeled buffer ${best?.fireArrivalBufferMinutes.toFixed(0) ?? "–"} min).`,
           "Visibility report re-weighted hazards and re-routed the resident mid-drive.",
-          "Voice guidance delivered turn-by-turn from route-engine maneuvers only.",
-          "High-risk zone avoided; official-orders guardrail present in every response.",
+          relocated
+            ? "Predicted zone reached the first safe zone — the SAFE ZONE MOVED and the route re-planned."
+            : "Safe-zone watcher monitored the predicted zone throughout the drive.",
+          liveLine,
+          "Official-orders guardrail present in every spoken response.",
         ],
       });
       break;

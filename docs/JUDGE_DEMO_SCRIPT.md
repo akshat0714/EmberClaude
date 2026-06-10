@@ -10,11 +10,13 @@ One click — **▶ RUN JUDGE DEMO** (left panel) — plays the full story in ~3
 | 4 | `placeUser` — blue dot appears on Palisades Drive | Caption: inside the 30-minute modeled spread envelope |
 | 5 | `ask` — resident asks **“Where do I go?”** | Assistant answers with first maneuvers, modeled buffer, confidence + official-orders line |
 | 6 | `compare` — 3 candidate cards | fastest / lowest smoke / largest fire buffer with time·buffer·smoke·score |
-| 7 | `select` — recommended route glows blue | Voice: “…not the fastest descent — the quickest option leaves only a few modeled minutes of fire buffer; the selected route roughly doubles it.” |
+| 7 | `select` — recommended route glows blue | Voice is composed live from the actual scores (`whyNotFastest`), so it is always true for this run — e.g. why the quickest descent lost on fire buffer |
 | 8 | `drive1` — chase-cam follows the dot; turn-by-turn callouts | “In 300 feet, turn right onto Sunset Boulevard.” → “Turn right… now.” Fire keeps spreading during the drive |
 | 9 | `visibility` — resident: **“No, I can't see ahead. It's bright orange.”** | Hatched “REPORTED LOW VISIBILITY” zone appears ahead; smoke re-weighted; **blue path flips** (U-turn to the alternate canyon); assistant explains |
-| 10 | `drive2` → `arrive` — updated route to the Santa Monica staging area | “You have reached the simulated lower-risk zone. Continue to follow official emergency guidance.” |
-| 11 | `summary` — judge panel | ✓ fire predicted ✓ route adapted ✓ voice guidance ✓ high-risk zone avoided ✓ official-order guardrail preserved + Export JSON |
+| 10 | `drive2` → `arriveStaging` — updated route reaches the nearest staging area | “…I am monitoring the modeled spread prediction from here.” |
+| 11 | `watchRelocation` / mid-drive — **the predicted zone reaches the safe zone** | Marker flips red ✕ COMPROMISED; voice: “…now inside the modeled predicted spread zone. Redirecting to Santa Monica staging area and re-routing.” The blue route re-plans (live Google directions in live mode) |
+| 12 | `drive3` → `arriveFinal` — drive to the RELOCATED safe zone | “You have reached the simulated lower-risk zone. Continue to follow official emergency guidance.” |
+| 13 | `summary` — judge panel | ✓ fire predicted ✓ safe zone RELOCATED ✓ route adapted ✓ voice guidance ✓ official-order guardrail preserved + Export JSON |
 
 ## Operating tips
 

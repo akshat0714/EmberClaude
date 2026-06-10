@@ -32,6 +32,7 @@ from .models import (
     RouteConditions,
     RouteRecommendation,
     RouteScore,
+    SafeZone,
 )
 
 LonLat = Tuple[float, float]
@@ -275,6 +276,18 @@ def _slice_polyline(coords: Sequence[Sequence[float]], from_m: float, to_m: floa
 COMPASS = ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"]
 
 
+def initial_bearing(polyline: Sequence[Sequence[float]]) -> Optional[float]:
+    """Bearing of the first real movement, skipping duplicated/near-zero
+    segments (snapping at a node can emit coincident leading points)."""
+    if len(polyline) < 2:
+        return None
+    p0 = polyline[0]
+    for p in polyline[1:]:
+        if geo.haversine_m(p0[0], p0[1], p[0], p[1]) > 8.0:
+            return geo.bearing_deg(p0[0], p0[1], p[0], p[1])
+    return None
+
+
 def _fmt_dist(meters: float) -> str:
     feet = meters * 3.28084
     if feet < 1000:
@@ -310,7 +323,9 @@ def build_maneuvers(path: List[Edge], speed_mph: float, dest_name: str) -> Tuple
             runs.append((e.name, [e]))
 
     first_geom = runs[0][1][0].geometry
-    head0 = geo.bearing_deg(first_geom[0][0], first_geom[0][1], first_geom[-1][0], first_geom[-1][1])
+    head0 = initial_bearing(first_geom)
+    if head0 is None:
+        head0 = initial_bearing(polyline) or 0.0
     start_road = runs[0][0] if runs[0][0] != "current road" else (runs[1][0] if len(runs) > 1 else "the route")
     maneuvers.append(Maneuver(
         id="m0", type="depart", roadName=start_road, distanceMeters=0.0,
@@ -353,94 +368,104 @@ def build_maneuvers(path: List[Edge], speed_mph: float, dest_name: str) -> Tuple
 # Candidate metrics + spec scoring
 # ---------------------------------------------------------------------------
 
-def _route_metrics(path: List[Edge], minute: float, ctx: HazardContext,
-                   profile: PersonProfile) -> dict:
-    total_m = sum(e.length_m for e in path)
-    t = minute
-    smoke_meters = 0.0
+# ---------------------------------------------------------------------------
+# Source-agnostic candidate pipeline: routes can come from the demo road
+# graph (Dijkstra above) OR live Google Directions; hazard metrics, label
+# assignment and the FinalRouteScore formula are IDENTICAL for both.
+# ---------------------------------------------------------------------------
+
+@dataclass
+class RawRoute:
+    polyline: List[List[float]]
+    maneuvers: List[Maneuver]
+    distance_m: float
+    duration_min: float          # base travel time before smoke slowdown
+    congestion: float
+    closure_groups: set
+    canyon_frac: float = 0.0
+
+
+def hazard_metrics(polyline: List[List[float]], minute: float,
+                   ctx: HazardContext, duration_min: float) -> dict:
+    """Time-aware hazard pass over any polyline, regardless of its source."""
+    pts = geo.resample_polyline([tuple(p) for p in polyline], SAMPLE_STEP_M)
+    total_m = geo.polyline_length_m([tuple(p) for p in polyline])
+    n = len(pts)
+    smoke_sum = 0.0
     peak_smoke = 0.0
+    worst_at: LonLat = (pts[0][0], pts[0][1])
     min_buffer = 1e9
-    worst_smoke_road = ""
-    congestion_acc = 0.0
     closure_risk = 0.0
-    canyon_m = 0.0
-    for e in path:
-        speed_mpm = e.speed_mph * 1609.34 / 60.0
-        t_trav = e.length_m / speed_mpm * _congestion_factor(e, t)
-        n = len(e.samples)
-        edge_smoke = 0.0
-        for i, (slon, slat) in enumerate(e.samples):
-            t_here = t + t_trav * (i / max(1, n - 1))
-            d = ctx.effective_smoke(slon, slat, t_here)
-            edge_smoke += d
-            smoke_meters += d * (e.length_m / n)
-            if d > peak_smoke:
-                peak_smoke, worst_smoke_road = d, e.name
-            buf = ctx.fire_arrival(slon, slat) - t_here
-            min_buffer = min(min_buffer, buf)
-        t_trav *= ctx.smoke_speed_factor(edge_smoke / max(1, n))
-        congestion_acc += e.congestion * e.length_m
-        if e.cls == "canyon":
-            canyon_m += e.length_m
-        edge_buf = ctx.fire_arrival(e.samples[len(e.samples) // 2][0],
-                                    e.samples[len(e.samples) // 2][1]) - t
-        closure_risk = max(closure_risk, min(1.0, max(0.0, (40.0 - edge_buf) / 40.0)) * 0.8)
-        t += t_trav
+    for i, (slon, slat) in enumerate(pts):
+        t_here = minute + duration_min * (i / max(1, n - 1))
+        d = ctx.effective_smoke(slon, slat, t_here)
+        smoke_sum += d
+        if d > peak_smoke:
+            peak_smoke, worst_at = d, (slon, slat)
+        buf = ctx.fire_arrival(slon, slat) - t_here
+        min_buffer = min(min_buffer, buf)
+        closure_risk = max(closure_risk, min(1.0, max(0.0, (40.0 - buf) / 40.0)) * 0.8)
+    smoke_avg = smoke_sum / max(1, n)
+    eff_duration = duration_min * ctx.smoke_speed_factor(smoke_avg)
     return {
         "distance_m": total_m,
-        "time_min": t - minute,
+        "time_min": eff_duration,
         "buffer_min": max(0.0, min_buffer),
-        "smoke_score": min(100.0, smoke_meters / 28.0),
+        "smoke_score": min(100.0, (smoke_avg * total_m) / 28.0),
         "peak_smoke": peak_smoke,
-        "worst_smoke_road": worst_smoke_road,
-        "congestion": min(1.0, congestion_acc / max(1.0, total_m)),
+        "worst_smoke_road": road_name_near(worst_at[0], worst_at[1]),
         "closure_risk": closure_risk,
-        "canyon_frac": canyon_m / max(1.0, total_m),
     }
 
 
-def _overlap_fraction(a: List[Edge], b: List[Edge]) -> float:
+def road_name_near(lon: float, lat: float) -> str:
+    edge, _, snapped = NETWORK.snap(lon, lat)
+    if geo.haversine_m(snapped[0], snapped[1], lon, lat) < 80.0:
+        return edge.name
+    return "the route"
+
+
+def closure_groups_for_polyline(polyline: List[List[float]]) -> set:
+    """Approximate which closure groups a (possibly Google) route touches by
+    snapping samples onto the demo graph, which mirrors the same streets."""
+    groups: set = set()
+    pts = geo.resample_polyline([tuple(p) for p in polyline], 160.0)
+    for lon, lat in pts:
+        edge, _, snapped = NETWORK.snap(lon, lat)
+        if geo.haversine_m(snapped[0], snapped[1], lon, lat) < 45.0:
+            groups.add(edge.closure_group)
+    return groups
+
+
+def polyline_overlap(a: List[List[float]], b: List[List[float]], tol_m: float = 60.0) -> float:
+    """Fraction of route A's samples lying within tol of route B."""
+    pa = geo.resample_polyline([tuple(p) for p in a], 150.0)
+    pb = geo.resample_polyline([tuple(p) for p in b], 150.0)
+    if not pa or not pb:
+        return 0.0
+    near = 0
+    for lon, lat in pa:
+        if any(geo.haversine_m(lon, lat, q[0], q[1]) < tol_m for q in pb):
+            near += 1
+    return near / len(pa)
+
+
+def _edge_overlap_fraction(a: List[Edge], b: List[Edge]) -> float:
     ids_b = {e.id.replace(":rev", "") for e in b}
     shared = sum(e.length_m for e in a if e.id.replace(":rev", "") in ids_b)
     return shared / max(1.0, sum(e.length_m for e in a))
 
 
-def recommend_routes(position: LonLat, heading: float, minute: float,
-                     profile: PersonProfile, ctx: HazardContext,
-                     destination_id: str = demo_world.DEFAULT_DESTINATION,
-                     reroute: bool = False) -> RouteRecommendation:
-    goal = demo_world.DEST_NODE.get(destination_id, "sm_staging")
-    dest = next(z for z in demo_world.SAFE_ZONES if z.id == destination_id)
-    ctx.smoke_scale = 0.6 + 0.8 * profile.smokeSensitivity
-    links = _start_links(position[0], position[1], heading)
+def finalize_recommendation(raws: List[RawRoute], heading: float, minute: float,
+                            profile: PersonProfile, ctx: HazardContext,
+                            dest: SafeZone, reroute: bool,
+                            source: str) -> RouteRecommendation:
+    if not raws:
+        raise RuntimeError("No viable route found")
+    metrics = [hazard_metrics(r.polyline, minute, ctx, r.duration_min) for r in raws]
 
-    raw: List[Tuple[WeightProfile, List[Edge]]] = []
-    for w in WEIGHT_PROFILES:
-        path = _dijkstra(links, goal, minute, w, ctx, {})
-        if path is None:
-            continue
-        # Force diversity: if this profile lands on an already-seen corridor,
-        # replan with every previously used edge penalized so judges always
-        # compare genuinely different alternatives.
-        if any(_overlap_fraction(path, p) > 0.85 for _, p in raw):
-            used_edges: Dict[str, float] = {}
-            for _, prev in raw:
-                for e in prev:
-                    used_edges[e.id.replace(":rev", "")] = 25.0
-            for e in path:
-                used_edges[e.id.replace(":rev", "")] = 25.0
-            alt = _dijkstra(links, goal, minute, w, ctx, used_edges)
-            if alt is not None and all(_overlap_fraction(alt, p) <= 0.85 for _, p in raw):
-                path = alt
-        raw.append((w, path))
-
-    if not raw:
-        raise RuntimeError("No viable route found in demo network")
-
-    # Re-assign the three labels by MEASURED metrics so cards never lie:
-    # the candidate that is actually quickest is called "fastest", etc.
-    metrics = [_route_metrics(p, minute, ctx, profile) for _, p in raw]
-    order = list(range(len(raw)))
+    # Assign the three labels by MEASURED metrics so cards never lie.
+    order = list(range(len(raws)))
     assigned: Dict[int, WeightProfile] = {}
     fastest_i = min(order, key=lambda i: metrics[i]["time_min"])
     assigned[fastest_i] = WEIGHT_PROFILES[0]
@@ -454,11 +479,12 @@ def recommend_routes(position: LonLat, heading: float, minute: float,
 
     fastest_time = min(m["time_min"] for m in metrics)
     candidates: List[CandidateRoute] = []
-    paths_by_id: Dict[str, List[Edge]] = {}
-    for idx, (_, path) in enumerate(raw):
-        w = assigned[idx]
+    raw_by_id: Dict[str, RawRoute] = {}
+    for idx, raw in enumerate(raws):
+        w = assigned.get(idx, WEIGHT_PROFILES[2])
         m = metrics[idx]
-        maneuvers, polyline = build_maneuvers(path, profile.travelSpeedMph, dest.name)
+        maneuvers = list(raw.maneuvers)
+        polyline = raw.polyline
         warnings: List[str] = []
         if m["peak_smoke"] > 0.55:
             warnings.append(f"Crosses modeled heavy smoke near {m['worst_smoke_road']}.")
@@ -466,13 +492,14 @@ def recommend_routes(position: LonLat, heading: float, minute: float,
             warnings.append(f"Passes modeled moderate smoke near {m['worst_smoke_road']}.")
         if m["buffer_min"] < 15:
             warnings.append(f"Modeled fire buffer only ~{m['buffer_min']:.0f} min at the tightest point.")
-        if m["congestion"] > 0.55:
+        if raw.congestion > 0.55:
             warnings.append("High evacuation-traffic congestion risk (modeled).")
-        rid = f"route-{w.route_type}"
-        # If the first move requires reversing the user's heading, make that explicit.
-        if len(polyline) >= 2:
-            first_brg = geo.bearing_deg(polyline[0][0], polyline[0][1], polyline[1][0], polyline[1][1])
-            if geo.angle_diff_deg(first_brg, heading) > 120.0 and maneuvers:
+        rid = f"route-{w.route_type}" if idx == min(i for i, ww in assigned.items() if ww is w) \
+            else f"route-{w.route_type}-{idx}"
+        # If the first move requires reversing the user's heading, say so.
+        first_brg = initial_bearing(polyline)
+        if first_brg is not None and maneuvers:
+            if geo.angle_diff_deg(first_brg, heading) > 120.0:
                 maneuvers[0].type = "uturn"
                 maneuvers[0].instruction = (f"Make a U-turn when safe, then "
                                             f"{maneuvers[0].instruction[0].lower()}{maneuvers[0].instruction[1:]}")
@@ -485,21 +512,23 @@ def recommend_routes(position: LonLat, heading: float, minute: float,
             estimatedTravelTimeMinutes=round(m["time_min"], 1),
             fireArrivalBufferMinutes=round(m["buffer_min"], 1),
             smokeExposureScore=round(m["smoke_score"], 1),
-            congestionRisk=round(m["congestion"], 2),
+            congestionRisk=round(raw.congestion, 2),
             roadClosureRisk=round(m["closure_risk"], 2),
             accessibilityScore=round(max(0.1, 1.0 - 0.05 * len(maneuvers)
-                                         - 0.35 * m["canyon_frac"] * (1.0 - profile.mobilityScore)), 2),
+                                         - 0.35 * raw.canyon_frac * (1.0 - profile.mobilityScore)), 2),
             confidence=round(min(0.95, max(0.35, 0.92 - 0.2 * m["smoke_score"] / 100.0
                                            - 0.1 * max(0.0, 20.0 - m["buffer_min"]) / 20.0
                                            - (0.05 if reroute else 0.0))), 2),
             warnings=warnings))
-        paths_by_id[rid] = path
+        raw_by_id[rid] = raw
 
     # Spec scoring formula over normalized component scores.
     for c in candidates:
-        others = [paths_by_id[o.routeId] for o in candidates if o.routeId != c.routeId]
-        diversity = 1.0 - min((_overlap_fraction(paths_by_id[c.routeId], o) for o in others), default=1.0)
-        closed_used = any(e.closure_group in ctx.conditions.closedRoads for e in paths_by_id[c.routeId])
+        others = [o for o in candidates if o.routeId != c.routeId]
+        diversity = 1.0 - min((polyline_overlap(c.polyline, o.polyline) for o in others),
+                              default=1.0)
+        closed_used = bool(raw_by_id[c.routeId].closure_groups
+                           & set(ctx.conditions.closedRoads))
         s = RouteScore(
             fireBufferScore=round(min(1.0, c.fireArrivalBufferMinutes / 45.0), 3),
             smokeAvoidanceScore=round(1.0 - c.smokeExposureScore / 100.0, 3),
@@ -515,21 +544,102 @@ def recommend_routes(position: LonLat, heading: float, minute: float,
 
     best = max(candidates, key=lambda c: c.score.final)  # type: ignore[union-attr]
     fastest = next((c for c in candidates if c.routeType == "fastest"), candidates[0])
-
-    explanation = _explain(best, fastest, candidates, ctx, reroute)
+    explanation = _explain(best, fastest, candidates, ctx, reroute, dest)
     why_not = _why_not_fastest(best, fastest)
     return RouteRecommendation(
         recommendedRouteId=best.routeId, candidates=candidates,
-        explanation=explanation, whyNotFastest=why_not, generatedAtMinute=minute)
+        explanation=explanation, whyNotFastest=why_not, generatedAtMinute=minute,
+        source=source,  # type: ignore[arg-type]
+        destination=dest)
+
+
+def _demo_raw_from_path(path: List[Edge], minute: float, profile: PersonProfile,
+                        dest_name: str) -> RawRoute:
+    maneuvers, polyline = build_maneuvers(path, profile.travelSpeedMph, dest_name)
+    t = minute
+    congestion_acc = 0.0
+    canyon_m = 0.0
+    total_m = sum(e.length_m for e in path)
+    for e in path:
+        speed_mpm = e.speed_mph * 1609.34 / 60.0
+        t += e.length_m / speed_mpm * _congestion_factor(e, t)
+        congestion_acc += e.congestion * e.length_m
+        if e.cls == "canyon":
+            canyon_m += e.length_m
+    return RawRoute(
+        polyline=[[p[0], p[1]] for p in polyline], maneuvers=maneuvers,
+        distance_m=total_m, duration_min=t - minute,
+        congestion=min(1.0, congestion_acc / max(1.0, total_m)),
+        closure_groups={e.closure_group for e in path},
+        canyon_frac=canyon_m / max(1.0, total_m))
+
+
+def recommend_routes(position: LonLat, heading: float, minute: float,
+                     profile: PersonProfile, ctx: HazardContext,
+                     destination_id: str = demo_world.DEFAULT_DESTINATION,
+                     reroute: bool = False) -> RouteRecommendation:
+    """Demo road-graph planner: three diversified hazard-aware Dijkstra runs."""
+    goal = demo_world.DEST_NODE.get(destination_id, "sm_staging")
+    dest = next(z for z in demo_world.SAFE_ZONES if z.id == destination_id)
+    ctx.smoke_scale = 0.6 + 0.8 * profile.smokeSensitivity
+    links = _start_links(position[0], position[1], heading)
+
+    paths: List[List[Edge]] = []
+    for w in WEIGHT_PROFILES:
+        path = _dijkstra(links, goal, minute, w, ctx, {})
+        if path is None:
+            continue
+        # Force diversity: if this profile lands on an already-seen corridor,
+        # replan with every previously used edge penalized so judges always
+        # compare genuinely different alternatives.
+        if any(_edge_overlap_fraction(path, p) > 0.85 for p in paths):
+            used_edges: Dict[str, float] = {}
+            for prev in paths + [path]:
+                for e in prev:
+                    used_edges[e.id.replace(":rev", "")] = 25.0
+            alt = _dijkstra(links, goal, minute, w, ctx, used_edges)
+            if alt is not None and all(_edge_overlap_fraction(alt, p) <= 0.85 for p in paths):
+                path = alt
+        paths.append(path)
+
+    if not paths:
+        raise RuntimeError("No viable route found in demo network")
+    raws = [_demo_raw_from_path(p, minute, profile, dest.name) for p in paths]
+    return finalize_recommendation(raws, heading, minute, profile, ctx, dest,
+                                   reroute, source="demo_graph")
+
+
+def recommend_routes_google(position: LonLat, heading: float, minute: float,
+                            profile: PersonProfile, ctx: HazardContext,
+                            dest: SafeZone, reroute: bool = False) -> RouteRecommendation:
+    """LIVE planner: real Google Routes API alternatives, hazard-scored by the
+    same engine. Raises google_maps.GoogleUnavailable on any failure so the
+    caller can fall back to the demo graph."""
+    from . import google_maps  # local import keeps fallback mode dependency-free
+
+    ctx.smoke_scale = 0.6 + 0.8 * profile.smokeSensitivity
+    groutes = google_maps.compute_routes(position, (dest.lon, dest.lat), dest.name)
+    evac_factor = 1.0 + 0.35 * min(1.0, minute / 60.0)  # evacuation traffic builds
+    raws = [RawRoute(
+        polyline=g["polyline"], maneuvers=g["maneuvers"],
+        distance_m=g["distanceMeters"],
+        duration_min=max(0.5, g["durationMinutes"]) * evac_factor,
+        congestion=min(1.0, 0.40 + 0.30 * min(1.0, minute / 60.0)),
+        closure_groups=closure_groups_for_polyline(g["polyline"]),
+    ) for g in groutes[:4]]
+    return finalize_recommendation(raws, heading, minute, profile, ctx, dest,
+                                   reroute, source="google_directions")
 
 
 def _explain(best: CandidateRoute, fastest: CandidateRoute,
-             all_c: List[CandidateRoute], ctx: HazardContext, reroute: bool) -> str:
+             all_c: List[CandidateRoute], ctx: HazardContext, reroute: bool,
+             dest: Optional[SafeZone] = None) -> str:
     parts = []
     if reroute:
         parts.append("Re-routed using your latest position and report.")
+    dest_part = f" to {dest.name}" if dest else ""
     parts.append(
-        f"Recommended simulated route: {best.name} "
+        f"Recommended simulated route: {best.name}{dest_part} "
         f"({best.totalDistanceMeters / 1609.34:.1f} mi, ~{best.estimatedTravelTimeMinutes:.0f} min modeled).")
     parts.append(
         f"It holds a ~{best.fireArrivalBufferMinutes:.0f}-minute modeled fire buffer and a smoke "

@@ -94,6 +94,9 @@ export class SceneManager {
 
   /** True when WebGL is software-rendered (CI, VMs, old machines). */
   private softwareGL = false;
+  /** Live mode: Google Photorealistic 3D Tiles carry the real world. */
+  private googleMode = false;
+  private safeZoneEntities = new Map<string, Cesium.Entity>();
 
   private detectSoftwareGL(): boolean {
     try {
@@ -106,9 +109,10 @@ export class SceneManager {
     }
   }
 
-  async init(container: HTMLElement): Promise<void> {
+  async init(container: HTMLElement, googleMapsApiKey = ""): Promise<void> {
     Cesium.Ion.defaultAccessToken = "";
     this.softwareGL = this.detectSoftwareGL();
+    this.googleMode = Boolean(googleMapsApiKey);
     const imagery = new Cesium.ImageryLayer(
       new Cesium.UrlTemplateImageryProvider({
         url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
@@ -180,6 +184,22 @@ export class SceneManager {
     clock.currentTime = Cesium.JulianDate.fromIso8601(START_ISO);
     clock.shouldAnimate = false;
 
+    // LIVE MODE: Google Photorealistic 3D Tiles of the real Pacific
+    // Palisades (Map Tiles API). Required attribution stays on screen.
+    if (this.googleMode) {
+      try {
+        const tileset = await Cesium.Cesium3DTileset.fromUrl(
+          `https://tile.googleapis.com/v1/3dtiles/root.json?key=${googleMapsApiKey}`,
+          { showCreditsOnScreen: true },
+        );
+        this.viewer.scene.primitives.add(tileset);
+        scene.globe.show = false; // the tiles ARE the world
+        this.viewer.imageryLayers.removeAll();
+      } catch {
+        this.googleMode = false; // tiles unreachable -> synthetic twin still works
+      }
+    }
+
     for (const ds of [this.staticDS, this.fireDS, this.hazardDS, this.routeDS, this.userDS]) {
       await this.viewer.dataSources.add(ds);
     }
@@ -200,6 +220,45 @@ export class SceneManager {
     });
 
     this.homeView(0);
+  }
+
+  /** Polyline graphics that hug the world in BOTH modes: draped onto the
+   * Google 3D tiles in live mode, explicit terrain heights in twin mode. */
+  private lineOn(coords: Array<[number, number] | number[]>, offsetM: number, width: number,
+                 material: Cesium.MaterialProperty | Cesium.Color): Cesium.PolylineGraphics.ConstructorOptions {
+    if (this.googleMode) {
+      return {
+        positions: coords.map((p) => Cesium.Cartesian3.fromDegrees(p[0], p[1])),
+        clampToGround: true,
+        classificationType: Cesium.ClassificationType.BOTH,
+        width,
+        material,
+      };
+    }
+    return {
+      positions: coords.map((p) => groundPosition(p[0], p[1], offsetM)),
+      width,
+      material,
+    };
+  }
+
+  /** Filled disc that drapes correctly in both modes. */
+  private discOn(lon: number, lat: number, radius: number,
+                 material: Cesium.MaterialProperty | Cesium.Color,
+                 outlineColor?: Cesium.Color): Cesium.EllipseGraphics.ConstructorOptions {
+    const base: Cesium.EllipseGraphics.ConstructorOptions = {
+      semiMajorAxis: radius,
+      semiMinorAxis: radius,
+      material,
+      outline: Boolean(outlineColor),
+      outlineColor,
+    };
+    if (this.googleMode) {
+      base.classificationType = Cesium.ClassificationType.BOTH;
+    } else {
+      base.height = Math.max(terrainHeightM(lon, lat), 0) + 1.5;
+    }
+    return base;
   }
 
   setClockMinute(minute: number): void {
@@ -271,7 +330,7 @@ export class SceneManager {
             coords.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(lon, lat)),
           ),
           material: color,
-          classificationType: Cesium.ClassificationType.TERRAIN,
+          classificationType: Cesium.ClassificationType.BOTH,
         },
       });
       this.layerFolders.vegetation.push(e);
@@ -291,11 +350,8 @@ export class SceneManager {
       };
       const [color, width] = style[cls] ?? ["#56688a", 2];
       ents.add({
-        polyline: {
-          positions: coords.map(([lon, lat]) => groundPosition(lon, lat, 2.5)),
-          width,
-          material: Cesium.Color.fromCssColorString(color).withAlpha(cls === "residential_visual" ? 0.5 : 0.9),
-        },
+        polyline: this.lineOn(coords, 2.5, width,
+          Cesium.Color.fromCssColorString(color).withAlpha(cls === "residential_visual" ? 0.5 : 0.9)),
       });
       if (name && !labelDone.has(name) && coords.length > 2) {
         labelDone.add(name);
@@ -342,39 +398,10 @@ export class SceneManager {
       this.layerFolders.buildings.push(e);
     }
 
-    // Safe zones.
-    for (const z of safeZones) {
-      ents.add({
-        position: groundPosition(z.lon, z.lat, 6),
-        point: {
-          pixelSize: 11,
-          color: COLORS.safe,
-          outlineColor: Cesium.Color.WHITE.withAlpha(0.85),
-          outlineWidth: 2,
-        },
-        label: {
-          text: `◈ ${z.name.toUpperCase()}`,
-          font: "600 12px Inter, sans-serif",
-          fillColor: COLORS.safe,
-          outlineColor: Cesium.Color.BLACK.withAlpha(0.9),
-          outlineWidth: 3,
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          pixelOffset: new Cesium.Cartesian2(0, -18),
-          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 26000),
-        },
-      });
-      ents.add({
-        position: groundPosition(z.lon, z.lat, 2),
-        ellipse: {
-          semiMajorAxis: 160,
-          semiMinorAxis: 160,
-          material: COLORS.safe.withAlpha(0.16),
-          outline: true,
-          outlineColor: COLORS.safe.withAlpha(0.7),
-          height: Math.max(terrainHeightM(z.lon, z.lat), 0) + 1,
-        },
-      });
-    }
+    // Safe zones render via renderSafeZones (status-aware, dynamic).
+    this.renderSafeZones(safeZones.map((z) => ({
+      zone: z, status: "safe", bufferMinutes: 999, insidePredictedZone: false, note: "",
+    })), null);
 
     // Ignition marker.
     ents.add({
@@ -395,14 +422,8 @@ export class SceneManager {
     // User start hint (before the dot is placed).
     ents.add({
       position: groundPosition(userStart[0], userStart[1], 4),
-      ellipse: {
-        semiMajorAxis: 90,
-        semiMinorAxis: 90,
-        material: COLORS.user.withAlpha(0.08),
-        outline: true,
-        outlineColor: COLORS.user.withAlpha(0.4),
-        height: Math.max(terrainHeightM(userStart[0], userStart[1]), 0) + 1,
-      },
+      ellipse: this.discOn(userStart[0], userStart[1], 90,
+        COLORS.user.withAlpha(0.08), COLORS.user.withAlpha(0.4)),
     });
   }
 
@@ -477,7 +498,9 @@ export class SceneManager {
               return baseColor.withAlpha((0.30 + 0.40 * inten2) * breathe);
             }, false),
           ),
-          height: Math.max(terrainHeightM(cell.lon, cell.lat), 0) + 1.5,
+          ...(this.googleMode
+            ? { classificationType: Cesium.ClassificationType.BOTH }
+            : { height: Math.max(terrainHeightM(cell.lon, cell.lat), 0) + 1.5 }),
         },
         point:
           inten > 0.45
@@ -503,15 +526,12 @@ export class SceneManager {
     if (perim) {
       this.fireDS.entities.add({
         id: `ov-perim-${key}`,
-        polyline: {
-          positions: perim.polygon.map(([lon, lat]) => groundPosition(lon, lat, 5)),
-          width: 9,
-          material: new Cesium.PolylineGlowMaterialProperty({
+        polyline: this.lineOn(perim.polygon, 5, 9,
+          new Cesium.PolylineGlowMaterialProperty({
             color: COLORS.perimeter.withAlpha(0.95),
             glowPower: 0.28,
             taperPower: 1,
-          }),
-        },
+          })),
       });
     }
 
@@ -528,14 +548,11 @@ export class SceneManager {
       if (pred && Number(predKey) > Number(key)) {
         this.fireDS.entities.add({
           id: `ov-pred-${key}`,
-          polyline: {
-            positions: pred.polygon.map(([lon, lat]) => groundPosition(lon, lat, 5)),
-            width: 3.5,
-            material: new Cesium.PolylineDashMaterialProperty({
+          polyline: this.lineOn(pred.polygon, 5, 3.5,
+            new Cesium.PolylineDashMaterialProperty({
               color: COLORS.predicted.withAlpha(0.9),
               dashLength: 22,
-            }),
-          },
+            })),
         });
       }
     }
@@ -545,14 +562,11 @@ export class SceneManager {
       if (env) {
         this.fireDS.entities.add({
           id: `ov-env-${key}`,
-          polyline: {
-            positions: env.polygon.map(([lon, lat]) => groundPosition(lon, lat, 5)),
-            width: 2.2,
-            material: new Cesium.PolylineDashMaterialProperty({
+          polyline: this.lineOn(env.polygon, 5, 2.2,
+            new Cesium.PolylineDashMaterialProperty({
               color: COLORS.uncertainty.withAlpha(0.55),
               dashLength: 9,
-            }),
-          },
+            })),
         });
       }
     }
@@ -567,7 +581,7 @@ export class SceneManager {
               rz.polygon.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(lon, lat)),
             ),
             material: color.withAlpha(rz.level === "extreme" ? 0.16 : rz.level === "high" ? 0.11 : 0.07),
-            classificationType: Cesium.ClassificationType.TERRAIN,
+            classificationType: Cesium.ClassificationType.BOTH,
           },
         });
       }
@@ -582,7 +596,7 @@ export class SceneManager {
               sz.polygon.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(lon, lat)),
             ),
             material: COLORS.smoke.withAlpha(0.07 + sz.density * 0.16),
-            classificationType: Cesium.ClassificationType.TERRAIN,
+            classificationType: Cesium.ClassificationType.BOTH,
           },
         });
         // 3D smoke volume along the main plume centerlines.
@@ -701,14 +715,11 @@ export class SceneManager {
       const isActive = route.routeId === activeId;
       if (!isActive) {
         ents.add({
-          polyline: {
-            positions: route.polyline.map(([lon, lat]) => groundPosition(lon, lat, 5)),
-            width: 4,
-            material: new Cesium.PolylineDashMaterialProperty({
+          polyline: this.lineOn(route.polyline, 5, 4,
+            new Cesium.PolylineDashMaterialProperty({
               color: COLORS.routeAlt.withAlpha(0.55),
               dashLength: 16,
-            }),
-          },
+            })),
         });
       }
     }
@@ -718,15 +729,12 @@ export class SceneManager {
 
     // Glowing blue route.
     ents.add({
-      polyline: {
-        positions: active.polyline.map(([lon, lat]) => groundPosition(lon, lat, 7)),
-        width: 13,
-        material: new Cesium.PolylineGlowMaterialProperty({
+      polyline: this.lineOn(active.polyline, 7, 13,
+        new Cesium.PolylineGlowMaterialProperty({
           color: COLORS.route.withAlpha(0.95),
           glowPower: 0.22,
           taperPower: 1,
-        }),
-      },
+        })),
     });
 
     // Direction arrows: short arrow segments roughly every 500 m.
@@ -750,6 +758,7 @@ export class SceneManager {
           color: isArrive ? COLORS.safe : Cesium.Color.WHITE,
           outlineColor: COLORS.route,
           outlineWidth: 2.5,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
         label: {
           text: sym,
@@ -794,6 +803,57 @@ export class SceneManager {
     }
   }
 
+  // ---- safe zones (dynamic status: the safe zone can MOVE) -------------------------
+
+  renderSafeZones(
+    statuses: Array<{ zone: SafeZone; status: string; bufferMinutes: number;
+                      insidePredictedZone: boolean; note: string }>,
+    activeDestinationId: string | null,
+  ): void {
+    for (const e of this.safeZoneEntities.values()) this.staticDS.entities.remove(e);
+    this.safeZoneEntities.clear();
+    for (const s of statuses) {
+      const z = s.zone;
+      const isActive = z.id === activeDestinationId;
+      const color = s.status === "compromised"
+        ? Cesium.Color.fromCssColorString("#ff3b30")
+        : s.status === "at_risk"
+          ? Cesium.Color.fromCssColorString("#ffb020")
+          : COLORS.safe;
+      const tag = s.status === "compromised" ? "✕ COMPROMISED — "
+        : s.status === "at_risk" ? "⚠ MONITORED — " : "◈ ";
+      const marker = this.staticDS.entities.add({
+        position: groundPosition(z.lon, z.lat, 6),
+        point: {
+          pixelSize: isActive ? 14 : 10,
+          color,
+          outlineColor: Cesium.Color.WHITE.withAlpha(0.9),
+          outlineWidth: isActive ? 3 : 2,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+        label: {
+          text: `${tag}${z.name.toUpperCase()}${isActive ? "  ← DESTINATION" : ""}`,
+          font: `${isActive ? 700 : 600} 12px Inter, sans-serif`,
+          fillColor: color,
+          outlineColor: Cesium.Color.BLACK.withAlpha(0.9),
+          outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -18),
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 30000),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      const ring = this.staticDS.entities.add({
+        position: groundPosition(z.lon, z.lat, 2),
+        ellipse: this.discOn(z.lon, z.lat, isActive ? 200 : 150,
+          color.withAlpha(s.status === "compromised" ? 0.10 : 0.16),
+          color.withAlpha(0.75)),
+      });
+      this.safeZoneEntities.set(z.id + "-m", marker);
+      this.safeZoneEntities.set(z.id + "-r", ring);
+    }
+  }
+
   // ---- reported low-visibility zone ------------------------------------------------
 
   renderReportedZone(zone: { center: LonLat; radiusM: number } | null): void {
@@ -803,18 +863,13 @@ export class SceneManager {
     const [lon, lat] = zone.center;
     ents.add({
       position: groundPosition(lon, lat, 3),
-      ellipse: {
-        semiMajorAxis: zone.radiusM,
-        semiMinorAxis: zone.radiusM,
-        material: new Cesium.StripeMaterialProperty({
+      ellipse: this.discOn(lon, lat, zone.radiusM,
+        new Cesium.StripeMaterialProperty({
           evenColor: Cesium.Color.fromCssColorString("#ff5a1f").withAlpha(0.22),
           oddColor: Cesium.Color.TRANSPARENT,
           repeat: 14,
         }),
-        outline: true,
-        outlineColor: Cesium.Color.fromCssColorString("#ff5a1f").withAlpha(0.85),
-        height: Math.max(terrainHeightM(lon, lat), 0) + 2,
-      },
+        Cesium.Color.fromCssColorString("#ff5a1f").withAlpha(0.85)),
       label: {
         text: "⚠ REPORTED LOW VISIBILITY",
         font: "700 11px Inter, sans-serif",

@@ -42,6 +42,14 @@ npm run dev
 
 Then open **http://localhost:5173** in Chrome (best voice support) and press **▶ RUN JUDGE DEMO**.
 
+### 🔑 LIVE MODE — real Google Maps data (recommended)
+
+```bash
+cd backend && cp .env.example .env   # paste your Google Maps API key, restart uvicorn
+```
+
+One key (Map Tiles API + Routes API + Elevation API enabled) switches the app to **Google Photorealistic 3D Tiles of the real Palisades, real Google driving directions, and real terrain elevations** feeding the fire model — with the safe zone automatically *relocating* (and re-routing via Google) whenever the predicted spread zone encroaches on it. Live wind via Open-Meteo needs no key. Full guide: `docs/GOOGLE_LIVE_MODE.md`. Without a key everything still runs on the synthetic twin.
+
 ### Regenerate the demo dataset (optional)
 
 ```bash
@@ -85,12 +93,15 @@ docs/       Architecture, models, safety, judge script, data roadmap
 
 ## What is real vs simulated
 
-| Element | Status |
-|---|---|
-| Ignition area, date/time, wind regime, neighborhood/road names & topology | Approximation of public reporting (labeled `historical_demo`) |
-| Terrain | Analytic heightfield shaped like the real area (not survey data) |
-| Buildings, vegetation polygons, fire cells, smoke, routes, travel times | **Synthetic demo data** |
-| Evacuation guidance | Modeled decision support — **not** official instructions |
+| Element | Twin mode (no key) | Live mode (`GOOGLE_MAPS_API_KEY`) |
+|---|---|---|
+| 3D world | Synthetic terrain + generated buildings | **Real** — Google Photorealistic 3D Tiles |
+| Terrain heights / fire-slope | Analytic heightfield | **Real** — Google Elevation API grid |
+| Driving directions & travel times | Demo road graph | **Real** — Google Routes API (live road names/instructions) |
+| Wind | Scenario dials | **Real** option — Open-Meteo current wind (keyless) |
+| Fire spread, smoke, risk, predicted zone | Modeled (demo-grade, explainable) | Modeled (same engine, real slope+wind inputs) |
+| Fuel/vegetation map | Synthetic | Synthetic (LANDFIRE is the upgrade path) |
+| Evacuation guidance | Modeled decision support — **never** official instructions | Same guardrails |
 
 See `docs/SAFETY_AND_LIMITATIONS.md` (read this first) and `docs/DATA_SOURCES_TO_ADD_LATER.md` for the path to real data (NASA FIRMS, CAL FIRE, OSM/OSMnx, NOAA, LANDFIRE, USGS 3DEP, SUMO).
 

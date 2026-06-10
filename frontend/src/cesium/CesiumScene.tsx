@@ -9,7 +9,10 @@ export default function CesiumScene() {
   const inited = useRef(false);
 
   const scenario = useApp((s) => s.scenario);
+  const config = useApp((s) => s.config);
   const datasets = useApp((s) => s.datasets);
+  const safeZoneStatuses = useApp((s) => s.safeZoneStatuses);
+  const destination = useApp((s) => s.destination);
   const sim = useApp((s) => s.sim);
   const simMinute = useApp((s) => s.simMinute);
   const layers = useApp((s) => s.layers);
@@ -20,18 +23,18 @@ export default function CesiumScene() {
   const followCam = useApp((s) => s.followCam);
   const setLoading = useApp((s) => s.setLoadingStage);
 
-  // One-time viewer init.
+  // One-time viewer init (config must be loaded first for live mode).
   useEffect(() => {
-    if (!ref.current || inited.current) return;
+    if (!ref.current || inited.current || !config) return;
     inited.current = true;
-    void sceneManager.init(ref.current).then(() => {
+    void sceneManager.init(ref.current, config.googleMapsApiKey).then(() => {
       setLoading("Scene ready");
       useApp.setState({ loading: false });
     });
     return () => {
       // Keep the viewer alive across React StrictMode remounts in dev.
     };
-  }, [setLoading]);
+  }, [setLoading, config]);
 
   // Static world once scenario + datasets are in.
   useEffect(() => {
@@ -72,6 +75,11 @@ export default function CesiumScene() {
     if (!sceneManager.viewer) return;
     sceneManager.renderReportedZone(reportedZone);
   }, [reportedZone]);
+
+  useEffect(() => {
+    if (!sceneManager.viewer || safeZoneStatuses.length === 0) return;
+    sceneManager.renderSafeZones(safeZoneStatuses, destination?.id ?? null);
+  }, [safeZoneStatuses, destination]);
 
   useEffect(() => {
     if (!sceneManager.viewer) return;

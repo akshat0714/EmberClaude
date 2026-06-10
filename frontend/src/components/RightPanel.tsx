@@ -112,6 +112,7 @@ export default function RightPanel() {
   const activeRouteId = useApp((s) => s.activeRouteId);
   const setActiveRoute = useApp((s) => s.setActiveRoute);
   const user = useApp((s) => s.user);
+  const destination = useApp((s) => s.destination);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
@@ -250,6 +251,14 @@ export default function RightPanel() {
               </div>
             </div>
           </div>
+          {(destination ?? recommendation?.destination) && (
+            <div className="mt-2 flex items-center justify-between rounded-md border border-emerald-400/20 bg-emerald-400/5 px-2 py-1">
+              <span className="stat-label">Destination</span>
+              <span className="text-[10px] font-semibold text-emerald-300">
+                {(destination ?? recommendation?.destination)?.name}
+              </span>
+            </div>
+          )}
           {best && <div className="mt-2.5"><ConfidenceMeter value={best.confidence} /></div>}
           {backup && (
             <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
@@ -269,7 +278,14 @@ export default function RightPanel() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="panel-title">Candidate routes</h3>
-                <span className="text-[9px] text-slate-500">min {recommendation.generatedAtMinute.toFixed(0)}</span>
+                <span className="flex items-center gap-1.5 text-[9px] text-slate-500">
+                  {recommendation.source === "google_directions" && (
+                    <span className="rounded bg-sky-500/20 px-1.5 py-0.5 font-bold text-sky-300">
+                      GOOGLE LIVE
+                    </span>
+                  )}
+                  min {recommendation.generatedAtMinute.toFixed(0)}
+                </span>
               </div>
               {recommendation.candidates.map((c) => (
                 <RouteCard

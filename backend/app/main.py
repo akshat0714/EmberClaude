@@ -13,7 +13,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import demo_world, guidance
+from . import demo_world, google_maps, guidance, weather
+from .google_config import public_config
 from .models import (
     AdvanceRequest,
     AdvanceResult,
@@ -53,7 +54,44 @@ if DATA_DIR.exists():
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": "palisades-escape-twin", "version": "1.0.0",
+    return {"status": "ok", "service": "palisades-escape-twin", "version": "1.1.0",
+            "disclaimer": SAFETY_DISCLAIMER}
+
+
+@app.get("/config")
+def config() -> dict:
+    """Live-mode capabilities for the frontend (Google tiles/routes, wind)."""
+    return public_config()
+
+
+@app.get("/terrain/grid")
+def terrain_grid() -> dict:
+    """Real elevation grid (Google Elevation API, cached) when available."""
+    grid = google_maps.elevation_grid(demo_world.SCENE_BOUNDS)
+    if grid is None:
+        return {"mode": "analytic_twin"}
+    payload = grid.to_payload()
+    payload["mode"] = "google_elevation"
+    return payload
+
+
+@app.get("/weather/live")
+def weather_live() -> dict:
+    """Current wind near the scenario from Open-Meteo (keyless)."""
+    wind = weather.fetch_live_wind()
+    if wind is None:
+        return {"available": False,
+                "note": "Live wind unreachable — using scenario dials."}
+    return {"available": True, **wind}
+
+
+@app.get("/safezones")
+def safe_zone_statuses(minute: float = 0.0) -> dict:
+    """Safe-zone viability vs the predicted spread at the given minute."""
+    statuses = STATE.zone_statuses(minute)
+    return {"minute": minute,
+            "activeDestinationId": STATE.destination_id,
+            "statuses": [s.to_dict() for s in statuses],
             "disclaimer": SAFETY_DISCLAIMER}
 
 
@@ -115,7 +153,7 @@ def recommend(req: RouteRequest) -> RouteRecommendation:
         return STATE.recommend(
             position=(req.position[0], req.position[1]),
             heading=req.headingDeg, minute=req.minute,
-            destination_id=req.destinationId)
+            destination_id=req.destinationId)  # None -> auto-select nearest viable zone
     except RuntimeError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -127,7 +165,7 @@ def guidance_respond(req: GuidanceRequest) -> GuidanceResponse:
 
 @app.post("/user/advance", response_model=AdvanceResult)
 def user_advance(req: AdvanceRequest) -> AdvanceResult:
-    return STATE.advance(req.meters)
+    return STATE.advance(req.meters, minute=req.minute)
 
 
 @app.post("/user/deviate", response_model=UserPosition)

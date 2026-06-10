@@ -3,8 +3,10 @@
 import { create } from "zustand";
 import { api } from "../api/client";
 import { speak } from "../lib/speech";
+import { setElevationGrid } from "../lib/terrain";
 import type {
   AdvanceResult,
+  AppConfig,
   CandidateRoute,
   GeoCollection,
   GuidanceResponse,
@@ -12,6 +14,8 @@ import type {
   LonLat,
   PersonProfile,
   RouteRecommendation,
+  SafeZone,
+  SafeZoneStatusT,
   ScenarioInfo,
   SimulationResult,
   TranscriptMsg,
@@ -59,8 +63,11 @@ export interface AppState {
   bootError: string | null;
   loading: boolean;
   loadingStage: string;
+  config: AppConfig | null;
   scenario: ScenarioInfo | null;
   datasets: Datasets;
+  safeZoneStatuses: SafeZoneStatusT[];
+  destination: SafeZone | null;
   profiles: PersonProfile[];
   profileId: string;
   sim: SimulationResult | null;
@@ -86,6 +93,9 @@ export interface AppState {
 
   boot: () => Promise<void>;
   setLoadingStage: (s: string) => void;
+  refreshSafeZones: (minute: number) => Promise<void>;
+  applyLiveWind: () => Promise<void>;
+  startFromMyLocation: () => void;
   setSimParam: (k: "windSpeedMph" | "windFromDeg" | "fireIntensity", v: number) => Promise<void>;
   rerunSimulation: () => Promise<void>;
   setMinute: (m: number) => void;
@@ -116,8 +126,11 @@ export const useApp = create<AppState>((set, get) => ({
   bootError: null,
   loading: true,
   loadingStage: "Contacting simulation backend…",
+  config: null,
   scenario: null,
   datasets: {},
+  safeZoneStatuses: [],
+  destination: null,
   profiles: [],
   profileId: "standard_adult",
   sim: null,
@@ -163,16 +176,26 @@ export const useApp = create<AppState>((set, get) => ({
     try {
       set({ loadingStage: "Contacting simulation backend…" });
       await api.health();
-      set({ loadingStage: "Loading Palisades scenario…" });
+      const config = await api.config();
+      set({ config, loadingStage: "Loading Palisades scenario…" });
       const scenario = await api.scenario();
       const profiles = await api.profiles();
-      set({ scenario, profiles, loadingStage: "Loading demo world (roads · buildings · fuel)…" });
-      const [roads, buildings, vegetation, judgeScript] = await Promise.all([
+      set({ scenario, profiles, loadingStage: "Loading world data (roads · buildings · terrain)…" });
+      const [roads, buildings, vegetation, judgeScript, grid] = await Promise.all([
         api.dataset(scenario.datasets.roads),
         api.dataset(scenario.datasets.buildings),
         api.dataset(scenario.datasets.vegetation),
         api.judgeScript(scenario.datasets.judgeScript),
+        api.terrainGrid().catch(() => ({ mode: "analytic_twin" }) as const),
       ]);
+      if (grid.mode === "google_elevation" && grid.heights) {
+        setElevationGrid(grid as Required<typeof grid> & { heights: number[] });
+      }
+      // Google-tile mode shows the real world: synthetic buildings/fuel
+      // polygons default off so they don't double-draw over photorealism.
+      if (config.googleEnabled) {
+        set((s) => ({ layers: { ...s.layers, buildings: false, vegetation: false, labels: false } }));
+      }
       set({
         datasets: { roads, buildings, vegetation, judgeScript },
         loadingStage: "Running fire spread simulation…",
@@ -180,6 +203,7 @@ export const useApp = create<AppState>((set, get) => ({
       await api.reset();
       const sim = await api.runSimulation({});
       set({ sim, loadingStage: "Composing 3D scene…" });
+      void get().refreshSafeZones(0);
     } catch (e) {
       set({
         bootError:
@@ -201,7 +225,7 @@ export const useApp = create<AppState>((set, get) => ({
     set({ sim });
   },
 
-  setMinute: (m) => set({ simMinute: Math.max(0, Math.min(75, m)) }),
+  setMinute: (m) => set({ simMinute: Math.max(0, Math.min(90, m)) }),
   setPlaying: (p) => set({ playing: p }),
   setPlaybackSpeed: (s) => set({ playbackSpeed: s }),
   toggleLayer: (k) => set((s) => ({ layers: { ...s.layers, [k]: !s.layers[k] } })),
@@ -303,6 +327,7 @@ export const useApp = create<AppState>((set, get) => ({
   applyAdvance: (r) => {
     set({
       user: r.position,
+      destination: r.destination ?? get().destination,
       status: {
         instruction: r.currentInstruction,
         nextManeuver: r.nextManeuver?.instruction ?? (r.arrived ? "Arrived" : "—"),
@@ -313,17 +338,89 @@ export const useApp = create<AppState>((set, get) => ({
         arrived: r.arrived,
       },
     });
-    if (r.arrived) set({ driving: false });
+    if (r.safeZoneChanged && r.recommendation) {
+      // The predicted zone reached the active safe zone: destination moved
+      // and the backend already re-planned. Surface it loudly.
+      set({
+        recommendation: r.recommendation,
+        activeRouteId: r.recommendation.recommendedRouteId,
+        driving: true,
+      });
+      get().pushTranscript("assistant", r.safeZoneNote);
+      get().setToast("⚠ SAFE ZONE RELOCATED — re-routing");
+      if (!get().muted) void speak(r.safeZoneNote, { interrupt: true });
+      void get().refreshSafeZones(r.position.minute);
+    } else if (r.arrived) {
+      set({ driving: false });
+    }
   },
 
   advanceUser: async (meters) => {
     try {
-      const r = await api.advance(meters);
+      const r = await api.advance(meters, get().simMinute);
       get().applyAdvance(r);
       return r;
     } catch {
       return null;
     }
+  },
+
+  refreshSafeZones: async (minute) => {
+    try {
+      const res = await api.safeZones(minute);
+      set({ safeZoneStatuses: res.statuses });
+    } catch {
+      /* backend transient — keep previous statuses */
+    }
+  },
+
+  applyLiveWind: async () => {
+    const wind = await api.liveWind().catch(() => null);
+    if (!wind || !wind.available || wind.windSpeedMph === undefined) {
+      get().setToast("Live wind unreachable — keeping scenario dials");
+      return;
+    }
+    set((s) => ({
+      simParams: {
+        ...s.simParams,
+        windSpeedMph: Math.round(wind.windSpeedMph!),
+        windFromDeg: Math.round(wind.windFromDeg ?? s.simParams.windFromDeg),
+      },
+    }));
+    await get().rerunSimulation();
+    get().setToast(
+      `Live wind applied: ${Math.round(wind.windSpeedMph!)} mph from ${Math.round(wind.windFromDeg ?? 0)}° (${wind.source ?? "live"})`,
+    );
+  },
+
+  startFromMyLocation: () => {
+    const s = get().scenario;
+    if (!s || !("geolocation" in navigator)) {
+      get().setToast("Geolocation unavailable — using the scenario start");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { longitude, latitude } = pos.coords;
+        const [w, sBound, e, n] = s.bounds;
+        if (longitude < w || longitude > e || latitude < sBound || latitude > n) {
+          get().setToast("You are outside the scenario area — placing the demo resident instead");
+          get().placeUser();
+          return;
+        }
+        set({
+          user: {
+            lon: longitude, lat: latitude, headingDeg: 160,
+            minute: get().simMinute, routeProgressMeters: 0,
+            onRoute: true, status: "idle",
+          },
+        });
+        get().setToast("Starting from your real location");
+        void get().askGuidance("Where do I go?");
+      },
+      () => get().setToast("Location permission denied — using the scenario start"),
+      { enableHighAccuracy: true, timeout: 8000 },
+    );
   },
 
   simulateMissedTurn: async () => {
@@ -371,6 +468,8 @@ export const useApp = create<AppState>((set, get) => ({
       reportedZone: null,
       closures: [],
       transcript: [],
+      destination: null,
+      safeZoneStatuses: [],
       judge: { running: false, stepIndex: -1, caption: "", summary: null },
       status: {
         instruction: "Awaiting scenario start.",

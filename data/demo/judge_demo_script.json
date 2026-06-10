@@ -54,14 +54,15 @@
    "id": "select",
    "action": "selectRecommended",
    "durationMs": 8000,
-   "caption": "Highest FinalRouteScore wins \u2014 not the fastest route.",
-   "voice": "Recommended simulated route selected. It is not the fastest descent. The quickest option leaves only a few modeled minutes of fire buffer; the selected route roughly doubles it. Follow official evacuation orders."
+   "caption": "Candidates scored \u2014 highest FinalRouteScore selected.",
+   "voice": ""
   },
   {
    "id": "drive1",
    "action": "driveUntilProgress",
    "params": {
-    "fraction": 0.37
+    "pastManeuvers": 2,
+    "plusMeters": 250
    },
    "durationMs": 0,
    "caption": "Turn-by-turn guidance while the fire keeps spreading."
@@ -83,10 +84,33 @@
    "id": "drive2",
    "action": "driveUntilArrived",
    "durationMs": 0,
-   "caption": "Continuing on the updated route toward the simulated lower-risk zone."
+   "caption": "Continuing on the updated route toward the nearest staging area."
   },
   {
-   "id": "arrive",
+   "id": "arriveStaging",
+   "action": "arrive",
+   "durationMs": 7000,
+   "caption": "First staging area reached \u2014 the model keeps watching the prediction.",
+   "voice": "You have reached the staging area. I am monitoring the modeled spread prediction from here. Stand by and follow official instructions."
+  },
+  {
+   "id": "watchRelocation",
+   "action": "holdForRelocation",
+   "params": {
+    "timeoutMs": 45000,
+    "speed": 8
+   },
+   "durationMs": 0,
+   "caption": "The predicted spread zone keeps growing toward the coast\u2026"
+  },
+  {
+   "id": "drive3",
+   "action": "driveUntilArrived",
+   "durationMs": 0,
+   "caption": "Safe zone MOVED \u2014 driving the new route away from the predicted zone."
+  },
+  {
+   "id": "arriveFinal",
    "action": "arrive",
    "durationMs": 8000,
    "caption": "Simulated lower-risk zone reached.",
@@ -96,7 +120,7 @@
    "id": "summary",
    "action": "showSummary",
    "durationMs": 0,
-   "caption": "Demo complete \u2014 fire predicted, route adapted, guardrails preserved."
+   "caption": "Demo complete \u2014 fire predicted, safe zone relocated, guardrails preserved."
   }
  ]
 }

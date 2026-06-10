@@ -2,7 +2,7 @@
  "disclaimer": "SYNTHETIC DEMO DATA approximating publicly reported aspects of the Jan 7, 2025 Palisades Fire. Not official. Not survey accurate. Never use for real navigation. Simulation only \u2014 modeled guidance from demo scenario inputs. Follow official evacuation orders and emergency personnel. Avoid closed roads.",
  "generatedAtMinute": 16.0,
  "recommendation": {
-  "recommendedRouteId": "route-max_fire_buffer",
+  "recommendedRouteId": "route-fastest",
   "candidates": [
    {
     "routeId": "route-fastest",
@@ -419,10 +419,10 @@
     ],
     "totalDistanceMeters": 6758.0,
     "estimatedTravelTimeMinutes": 10.5,
-    "fireArrivalBufferMinutes": 5.8,
-    "smokeExposureScore": 45.9,
+    "fireArrivalBufferMinutes": 6.0,
+    "smokeExposureScore": 47.3,
     "congestionRisk": 0.48,
-    "roadClosureRisk": 0.59,
+    "roadClosureRisk": 0.68,
     "accessibilityScore": 0.73,
     "confidence": 0.76,
     "warnings": [
@@ -430,14 +430,14 @@
      "Modeled fire buffer only ~6 min at the tightest point."
     ],
     "score": {
-     "fireBufferScore": 0.129,
-     "smokeAvoidanceScore": 0.541,
-     "travelTimeScore": 1.0,
-     "roadClosureComplianceScore": 0.705,
+     "fireBufferScore": 0.133,
+     "smokeAvoidanceScore": 0.527,
+     "travelTimeScore": 0.998,
+     "roadClosureComplianceScore": 0.66,
      "profileSuitabilityScore": 0.73,
      "congestionScore": 0.52,
-     "backupRouteScore": 0.404,
-     "final": 0.514
+     "backupRouteScore": 0.261,
+     "final": 0.499
     }
    },
    {
@@ -1113,10 +1113,10 @@
     ],
     "totalDistanceMeters": 11919.0,
     "estimatedTravelTimeMinutes": 19.8,
-    "fireArrivalBufferMinutes": 2.5,
+    "fireArrivalBufferMinutes": 2.1,
     "smokeExposureScore": 21.5,
     "congestionRisk": 0.54,
-    "roadClosureRisk": 0.74,
+    "roadClosureRisk": 0.76,
     "accessibilityScore": 0.64,
     "confidence": 0.79,
     "warnings": [
@@ -1124,14 +1124,14 @@
      "Modeled fire buffer only ~2 min at the tightest point."
     ],
     "score": {
-     "fireBufferScore": 0.056,
+     "fireBufferScore": 0.047,
      "smokeAvoidanceScore": 0.785,
-     "travelTimeScore": 0.532,
-     "roadClosureComplianceScore": 0.63,
+     "travelTimeScore": 0.529,
+     "roadClosureComplianceScore": 0.62,
      "profileSuitabilityScore": 0.64,
      "congestionScore": 0.46,
-     "backupRouteScore": 0.738,
-     "final": 0.48
+     "backupRouteScore": 0.65,
+     "final": 0.471
     }
    },
    {
@@ -1616,32 +1616,41 @@
      }
     ],
     "totalDistanceMeters": 8260.0,
-    "estimatedTravelTimeMinutes": 12.0,
-    "fireArrivalBufferMinutes": 13.0,
-    "smokeExposureScore": 56.3,
+    "estimatedTravelTimeMinutes": 12.2,
+    "fireArrivalBufferMinutes": 13.3,
+    "smokeExposureScore": 67.6,
     "congestionRisk": 0.46,
-    "roadClosureRisk": 0.45,
+    "roadClosureRisk": 0.53,
     "accessibilityScore": 0.74,
-    "confidence": 0.77,
+    "confidence": 0.75,
     "warnings": [
      "Crosses modeled heavy smoke near Palisades Drive.",
      "Modeled fire buffer only ~13 min at the tightest point."
     ],
     "score": {
-     "fireBufferScore": 0.289,
-     "smokeAvoidanceScore": 0.437,
-     "travelTimeScore": 0.878,
-     "roadClosureComplianceScore": 0.775,
+     "fireBufferScore": 0.296,
+     "smokeAvoidanceScore": 0.324,
+     "travelTimeScore": 0.859,
+     "roadClosureComplianceScore": 0.735,
      "profileSuitabilityScore": 0.74,
      "congestionScore": 0.54,
-     "backupRouteScore": 0.623,
-     "final": 0.537
+     "backupRouteScore": 0.5,
+     "final": 0.498
     }
    }
   ],
-  "explanation": "Recommended simulated route: Largest fire buffer (5.1 mi, ~12 min modeled). It holds a ~13-minute modeled fire buffer and a smoke exposure score of 56/100, the best balance of the 3 candidates under current scenario inputs. Route confidence 77% given model uncertainty. This is modeled risk, not a guarantee \u2014 follow official evacuation orders.",
-  "whyNotFastest": "The fastest route (Fastest route) would save ~2 min but leaves a thinner fire buffer (6 vs 13 min modeled). The recommendation trades a little time for a larger modeled safety margin.",
+  "explanation": "Recommended simulated route: Fastest route to Santa Monica staging area (demo) (4.2 mi, ~10 min modeled). It holds a ~6-minute modeled fire buffer and a smoke exposure score of 47/100, the best balance of the 3 candidates under current scenario inputs. Route confidence 76% given model uncertainty. This is modeled risk, not a guarantee \u2014 follow official evacuation orders.",
+  "whyNotFastest": "The fastest route is also the lowest modeled-risk route right now, so speed and safety margin agree.",
   "safetyReminder": "Simulation only \u2014 modeled guidance from demo scenario inputs. Follow official evacuation orders and emergency personnel. Avoid closed roads.",
-  "generatedAtMinute": 16.0
+  "generatedAtMinute": 16.0,
+  "source": "demo_graph",
+  "destination": {
+   "id": "santa_monica_staging",
+   "name": "Santa Monica staging area (demo)",
+   "lon": -118.5005,
+   "lat": 34.0155,
+   "kind": "staging",
+   "notes": "Simulated lower-risk assembly point near Ocean Ave; demo destination."
+  }
  }
 }

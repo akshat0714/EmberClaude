@@ -30,7 +30,7 @@ export default function App() {
       const s = useApp.getState();
       const next = s.simMinute + dt * s.playbackSpeed * 0.5;
       s.setMinute(next);
-      if (next >= 75) s.setPlaying(false);
+      if (next >= 90) s.setPlaying(false);
     }, 120);
     return () => window.clearInterval(id);
   }, [playing]);

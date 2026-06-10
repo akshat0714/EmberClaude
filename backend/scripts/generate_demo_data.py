@@ -116,11 +116,10 @@ def main() -> None:
             {"id": "compare", "action": "showComparison", "durationMs": 9000,
              "caption": "Three candidates scored: fastest / lowest smoke / largest fire buffer."},
             {"id": "select", "action": "selectRecommended", "durationMs": 8000,
-             "caption": "Highest FinalRouteScore wins — not the fastest route.",
-             "voice": ("Recommended simulated route selected. It is not the fastest descent. The "
-                       "quickest option leaves only a few modeled minutes of fire buffer; the "
-                       "selected route roughly doubles it. Follow official evacuation orders.")},
-            {"id": "drive1", "action": "driveUntilProgress", "params": {"fraction": 0.37},
+             "caption": "Candidates scored — highest FinalRouteScore selected.",
+             "voice": ""},
+            {"id": "drive1", "action": "driveUntilProgress",
+             "params": {"pastManeuvers": 2, "plusMeters": 250},
              "durationMs": 0, "caption": "Turn-by-turn guidance while the fire keeps spreading."},
             {"id": "visibility", "action": "userAsks",
              "userLine": "No, I can't see ahead. It's bright orange.", "durationMs": 15000,
@@ -128,13 +127,22 @@ def main() -> None:
             {"id": "reroute", "action": "highlightReroute", "durationMs": 7000,
              "caption": "The blue path changes: the smoke-heavy descent is avoided."},
             {"id": "drive2", "action": "driveUntilArrived", "durationMs": 0,
-             "caption": "Continuing on the updated route toward the simulated lower-risk zone."},
-            {"id": "arrive", "action": "arrive", "durationMs": 8000,
+             "caption": "Continuing on the updated route toward the nearest staging area."},
+            {"id": "arriveStaging", "action": "arrive", "durationMs": 7000,
+             "caption": "First staging area reached — the model keeps watching the prediction.",
+             "voice": ("You have reached the staging area. I am monitoring the modeled spread "
+                       "prediction from here. Stand by and follow official instructions.")},
+            {"id": "watchRelocation", "action": "holdForRelocation",
+             "params": {"timeoutMs": 45000, "speed": 8}, "durationMs": 0,
+             "caption": "The predicted spread zone keeps growing toward the coast…"},
+            {"id": "drive3", "action": "driveUntilArrived", "durationMs": 0,
+             "caption": "Safe zone MOVED — driving the new route away from the predicted zone."},
+            {"id": "arriveFinal", "action": "arrive", "durationMs": 8000,
              "caption": "Simulated lower-risk zone reached.",
              "voice": ("You have reached the simulated lower-risk zone. Continue to follow "
                        "official emergency guidance.")},
             {"id": "summary", "action": "showSummary", "durationMs": 0,
-             "caption": "Demo complete — fire predicted, route adapted, guardrails preserved."},
+             "caption": "Demo complete — fire predicted, safe zone relocated, guardrails preserved."},
         ],
     })
     print("Done.")
