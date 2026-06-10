@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply h-full w-full overflow-hidden bg-ops-900 text-slate-200 font-body antialiased;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/10 hover:bg-white/20;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply border border-white/10 bg-ops-800/70 backdrop-blur-md shadow-panel;
+  }
+  .glass-strong {
+    @apply border border-white/10 bg-ops-850/85 backdrop-blur-xl shadow-panel;
+  }
+  .chip {
+    @apply rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200 transition hover:border-routeblue/60 hover:bg-routeblue/10 hover:text-white disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply rounded-lg bg-gradient-to-r from-ember-600 to-ember-500 px-4 py-2 text-sm font-semibold text-white shadow-fire transition hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:shadow-none;
+  }
+  .btn-ghost {
+    @apply rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:bg-white/10 disabled:opacity-40;
+  }
+  .panel-title {
+    @apply font-display text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400;
+  }
+  .stat-label {
+    @apply text-[10px] font-medium uppercase tracking-wider text-slate-500;
+  }
+  .stat-value {
+    @apply font-mono text-sm font-semibold text-slate-100;
+  }
+}
+
+/* Cesium chrome cleanup */
+.cesium-viewer-bottom {
+  bottom: 2px !important;
+  left: 6px !important;
+}
+.cesium-credit-logoContainer,
+.cesium-credit-expand-link {
+  display: none !important;
+}
+.cesium-widget-credits {
+  font-size: 9px !important;
+  opacity: 0.45;
+}
+
+input[type="range"] {
+  @apply h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/10;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  @apply h-3.5 w-3.5 rounded-full bg-routeblue shadow-glow;
+}
+input[type="range"]::-moz-range-thumb {
+  @apply h-3.5 w-3.5 rounded-full border-0 bg-routeblue shadow-glow;
+}
