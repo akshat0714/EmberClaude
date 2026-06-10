@@ -1,0 +1,102 @@
+{
+ "disclaimer": "SYNTHETIC DEMO DATA approximating publicly reported aspects of the Jan 7, 2025 Palisades Fire. Not official. Not survey accurate. Never use for real navigation. Simulation only \u2014 modeled guidance from demo scenario inputs. Follow official evacuation orders and emergency personnel. Avoid closed roads.",
+ "title": "Palisades Fire 3D Escape Twin \u2014 Judge Demo",
+ "steps": [
+  {
+   "id": "intro",
+   "action": "flyOverview",
+   "durationMs": 9000,
+   "caption": "Historical replay \u2014 Palisades Fire, Jan 7 2025, ~10:30 AM PST. Synthetic demo data.",
+   "voice": "This is a simulation-backed replay of the January seventh Palisades Fire with one simulated resident. In any real emergency, follow official evacuation orders."
+  },
+  {
+   "id": "ignite",
+   "action": "startReplay",
+   "params": {
+    "minute": 0,
+    "speed": 5
+   },
+   "durationMs": 7000,
+   "caption": "Minute 0 \u2014 ignition modeled on the ridge above Piedra Morada Drive.",
+   "voice": "Minute zero. Fire cells detected on the ridge above Palisades Highlands."
+  },
+  {
+   "id": "spread",
+   "action": "advanceReplay",
+   "params": {
+    "toMinute": 16
+   },
+   "durationMs": 14000,
+   "caption": "NNE Santa Ana winds ~38 mph drive the front toward the Highlands; smoke pushes downwind.",
+   "voice": "Sustained northeast winds are driving rapid spread toward Palisades Highlands. Smoke is drifting downwind across the Temescal corridor."
+  },
+  {
+   "id": "placeUser",
+   "action": "placeUser",
+   "durationMs": 7000,
+   "caption": "Simulated resident on Palisades Drive \u2014 inside the 30-minute modeled spread envelope.",
+   "voice": "A simulated resident is in the Highlands, inside the thirty minute modeled spread envelope."
+  },
+  {
+   "id": "ask",
+   "action": "userAsks",
+   "userLine": "Where do I go?",
+   "durationMs": 14000,
+   "caption": "The resident asks for guidance."
+  },
+  {
+   "id": "compare",
+   "action": "showComparison",
+   "durationMs": 9000,
+   "caption": "Three candidates scored: fastest / lowest smoke / largest fire buffer."
+  },
+  {
+   "id": "select",
+   "action": "selectRecommended",
+   "durationMs": 8000,
+   "caption": "Highest FinalRouteScore wins \u2014 not the fastest route.",
+   "voice": "Recommended simulated route selected. It is not the fastest descent. The quickest option leaves only a few modeled minutes of fire buffer; the selected route roughly doubles it. Follow official evacuation orders."
+  },
+  {
+   "id": "drive1",
+   "action": "driveUntilProgress",
+   "params": {
+    "fraction": 0.37
+   },
+   "durationMs": 0,
+   "caption": "Turn-by-turn guidance while the fire keeps spreading."
+  },
+  {
+   "id": "visibility",
+   "action": "userAsks",
+   "userLine": "No, I can't see ahead. It's bright orange.",
+   "durationMs": 15000,
+   "caption": "Live report: visibility lost \u2014 smoke hazard re-weighted, route recalculated."
+  },
+  {
+   "id": "reroute",
+   "action": "highlightReroute",
+   "durationMs": 7000,
+   "caption": "The blue path changes: the smoke-heavy descent is avoided."
+  },
+  {
+   "id": "drive2",
+   "action": "driveUntilArrived",
+   "durationMs": 0,
+   "caption": "Continuing on the updated route toward the simulated lower-risk zone."
+  },
+  {
+   "id": "arrive",
+   "action": "arrive",
+   "durationMs": 8000,
+   "caption": "Simulated lower-risk zone reached.",
+   "voice": "You have reached the simulated lower-risk zone. Continue to follow official emergency guidance."
+  },
+  {
+   "id": "summary",
+   "action": "showSummary",
+   "durationMs": 0,
+   "caption": "Demo complete \u2014 fire predicted, route adapted, guardrails preserved."
+  }
+ ]
+}

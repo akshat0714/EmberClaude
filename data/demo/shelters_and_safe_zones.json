@@ -1,0 +1,29 @@
+{
+ "disclaimer": "SYNTHETIC DEMO DATA approximating publicly reported aspects of the Jan 7, 2025 Palisades Fire. Not official. Not survey accurate. Never use for real navigation. Simulation only \u2014 modeled guidance from demo scenario inputs. Follow official evacuation orders and emergency personnel. Avoid closed roads.",
+ "safeZones": [
+  {
+   "id": "santa_monica_staging",
+   "name": "Santa Monica staging area (demo)",
+   "lon": -118.5005,
+   "lat": 34.0155,
+   "kind": "staging",
+   "notes": "Simulated lower-risk assembly point near Ocean Ave; demo destination."
+  },
+  {
+   "id": "westwood_rec_center",
+   "name": "Westwood Recreation Center (approx. location)",
+   "lon": -118.448,
+   "lat": 34.0561,
+   "kind": "evacuation_center",
+   "notes": "Real evacuation center used Jan 7, 2025; position approximate, off map edge."
+  },
+  {
+   "id": "will_rogers_beach_lot",
+   "name": "Will Rogers Beach lot (demo, last resort)",
+   "lon": -118.535,
+   "lat": 34.0358,
+   "kind": "refuge",
+   "notes": "Coastal refuge of last resort in the simulation; downwind of modeled smoke."
+  }
+ ]
+}

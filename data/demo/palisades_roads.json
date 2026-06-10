@@ -1,0 +1,2020 @@
+{
+ "type": "FeatureCollection",
+ "properties": {
+  "disclaimer": "Approximate demo road geometry \u2014 not for navigation."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 42,
+    "congestionRisk": 0.45,
+    "closureGroup": "pch_north",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5565,
+      34.0405
+     ],
+     [
+      -118.555573,
+      34.040342
+     ],
+     [
+      -118.554643,
+      34.040194
+     ],
+     [
+      -118.553717,
+      34.040032
+     ],
+     [
+      -118.552801,
+      34.039838
+     ],
+     [
+      -118.551896,
+      34.039608
+     ],
+     [
+      -118.550998,
+      34.039355
+     ],
+     [
+      -118.550101,
+      34.0391
+     ],
+     [
+      -118.549197,
+      34.038868
+     ],
+     [
+      -118.548282,
+      34.03867
+     ],
+     [
+      -118.547357,
+      34.038505
+     ],
+     [
+      -118.546427,
+      34.038357
+     ],
+     [
+      -118.5455,
+      34.0382
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 42,
+    "congestionRisk": 0.45,
+    "closureGroup": "pch_north",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5455,
+      34.0382
+     ],
+     [
+      -118.544593,
+      34.038018
+     ],
+     [
+      -118.543682,
+      34.037849
+     ],
+     [
+      -118.542764,
+      34.037713
+     ],
+     [
+      -118.541838,
+      34.037611
+     ],
+     [
+      -118.540908,
+      34.037532
+     ],
+     [
+      -118.539977,
+      34.037451
+     ],
+     [
+      -118.539052,
+      34.037346
+     ],
+     [
+      -118.538136,
+      34.037204
+     ],
+     [
+      -118.537227,
+      34.037029
+     ],
+     [
+      -118.536321,
+      34.036838
+     ],
+     [
+      -118.535414,
+      34.036655
+     ],
+     [
+      -118.5345,
+      34.0365
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 40,
+    "congestionRisk": 0.5,
+    "closureGroup": "pch_south",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5345,
+      34.0365
+     ],
+     [
+      -118.533669,
+      34.036205
+     ],
+     [
+      -118.532827,
+      34.035937
+     ],
+     [
+      -118.531964,
+      34.035717
+     ],
+     [
+      -118.531085,
+      34.035535
+     ],
+     [
+      -118.530205,
+      34.035354
+     ],
+     [
+      -118.529341,
+      34.035138
+     ],
+     [
+      -118.528498,
+      34.034871
+     ],
+     [
+      -118.527671,
+      34.034568
+     ],
+     [
+      -118.526843,
+      34.034266
+     ],
+     [
+      -118.526,
+      34.034
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 40,
+    "congestionRisk": 0.5,
+    "closureGroup": "pch_south",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.526,
+      34.034
+     ],
+     [
+      -118.525085,
+      34.033816
+     ],
+     [
+      -118.524161,
+      34.033658
+     ],
+     [
+      -118.523254,
+      34.033452
+     ],
+     [
+      -118.522375,
+      34.033168
+     ],
+     [
+      -118.521509,
+      34.032849
+     ],
+     [
+      -118.520629,
+      34.03257
+     ],
+     [
+      -118.519721,
+      34.032366
+     ],
+     [
+      -118.5188,
+      34.0322
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 40,
+    "congestionRisk": 0.55,
+    "closureGroup": "pch_south",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5188,
+      34.0322
+     ],
+     [
+      -118.518324,
+      34.031615
+     ],
+     [
+      -118.517773,
+      34.031082
+     ],
+     [
+      -118.517113,
+      34.030626
+     ],
+     [
+      -118.516486,
+      34.030148
+     ],
+     [
+      -118.515981,
+      34.029582
+     ],
+     [
+      -118.5155,
+      34.029
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 40,
+    "congestionRisk": 0.55,
+    "closureGroup": "pch_south",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5155,
+      34.029
+     ],
+     [
+      -118.51479,
+      34.028526
+     ],
+     [
+      -118.514108,
+      34.028027
+     ],
+     [
+      -118.513459,
+      34.027496
+     ],
+     [
+      -118.51283,
+      34.026947
+     ],
+     [
+      -118.512197,
+      34.026401
+     ],
+     [
+      -118.511536,
+      34.025881
+     ],
+     [
+      -118.510839,
+      34.025396
+     ],
+     [
+      -118.510114,
+      34.024936
+     ],
+     [
+      -118.509385,
+      34.02448
+     ],
+     [
+      -118.508676,
+      34.024005
+     ],
+     [
+      -118.508,
+      34.0235
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 38,
+    "congestionRisk": 0.6,
+    "closureGroup": "pch_south",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.508,
+      34.0235
+     ],
+     [
+      -118.507481,
+      34.022825
+     ],
+     [
+      -118.50698,
+      34.022139
+     ],
+     [
+      -118.506396,
+      34.021504
+     ],
+     [
+      -118.505726,
+      34.020922
+     ],
+     [
+      -118.505068,
+      34.020331
+     ],
+     [
+      -118.504504,
+      34.019684
+     ],
+     [
+      -118.504,
+      34.019
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Pacific Coast Highway",
+    "class": "highway",
+    "speedMph": 35,
+    "congestionRisk": 0.6,
+    "closureGroup": "pch_south",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.504,
+      34.019
+     ],
+     [
+      -118.503487,
+      34.018368
+     ],
+     [
+      -118.502947,
+      34.017755
+     ],
+     [
+      -118.502282,
+      34.017228
+     ],
+     [
+      -118.501589,
+      34.01672
+     ],
+     [
+      -118.501008,
+      34.016135
+     ],
+     [
+      -118.5005,
+      34.0155
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 30,
+    "congestionRisk": 0.5,
+    "closureGroup": "sunset_west",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5565,
+      34.0405
+     ],
+     [
+      -118.555829,
+      34.040945
+     ],
+     [
+      -118.555118,
+      34.041353
+     ],
+     [
+      -118.554456,
+      34.041806
+     ],
+     [
+      -118.553877,
+      34.042337
+     ],
+     [
+      -118.553316,
+      34.042886
+     ],
+     [
+      -118.552691,
+      34.043374
+     ],
+     [
+      -118.552,
+      34.0438
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 30,
+    "congestionRisk": 0.5,
+    "closureGroup": "sunset_west",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.552,
+      34.0438
+     ],
+     [
+      -118.551076,
+      34.043876
+     ],
+     [
+      -118.550153,
+      34.043957
+     ],
+     [
+      -118.549234,
+      34.044066
+     ],
+     [
+      -118.548323,
+      34.044211
+     ],
+     [
+      -118.547417,
+      34.044385
+     ],
+     [
+      -118.546513,
+      34.044568
+     ],
+     [
+      -118.545605,
+      34.044734
+     ],
+     [
+      -118.544691,
+      34.044866
+     ],
+     [
+      -118.543771,
+      34.044962
+     ],
+     [
+      -118.542846,
+      34.045034
+     ],
+     [
+      -118.541921,
+      34.045106
+     ],
+     [
+      -118.541,
+      34.0452
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 30,
+    "congestionRisk": 0.55,
+    "closureGroup": "sunset_west",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.541,
+      34.0452
+     ],
+     [
+      -118.540037,
+      34.045254
+     ],
+     [
+      -118.539073,
+      34.045291
+     ],
+     [
+      -118.538108,
+      34.045302
+     ],
+     [
+      -118.537143,
+      34.045288
+     ],
+     [
+      -118.536177,
+      34.045258
+     ],
+     [
+      -118.535211,
+      34.045226
+     ],
+     [
+      -118.534245,
+      34.045208
+     ],
+     [
+      -118.533281,
+      34.045215
+     ],
+     [
+      -118.532317,
+      34.045251
+     ],
+     [
+      -118.531354,
+      34.04531
+     ],
+     [
+      -118.530391,
+      34.045378
+     ],
+     [
+      -118.529428,
+      34.04544
+     ],
+     [
+      -118.528464,
+      34.045483
+     ],
+     [
+      -118.5275,
+      34.0455
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 28,
+    "congestionRisk": 0.6,
+    "closureGroup": "sunset_village",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5275,
+      34.0455
+     ],
+     [
+      -118.52664,
+      34.045565
+     ],
+     [
+      -118.525794,
+      34.045754
+     ],
+     [
+      -118.524934,
+      34.045813
+     ],
+     [
+      -118.52406,
+      34.045743
+     ],
+     [
+      -118.5232,
+      34.0458
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 28,
+    "congestionRisk": 0.6,
+    "closureGroup": "sunset_village",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5232,
+      34.0458
+     ],
+     [
+      -118.522561,
+      34.045202
+     ],
+     [
+      -118.521969,
+      34.044576
+     ],
+     [
+      -118.521585,
+      34.04383
+     ],
+     [
+      -118.521,
+      34.0432
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 28,
+    "congestionRisk": 0.6,
+    "closureGroup": "sunset_village",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.521,
+      34.0432
+     ],
+     [
+      -118.520719,
+      34.042527
+     ],
+     [
+      -118.520531,
+      34.041827
+     ],
+     [
+      -118.520322,
+      34.041133
+     ],
+     [
+      -118.519997,
+      34.040473
+     ],
+     [
+      -118.519595,
+      34.039836
+     ],
+     [
+      -118.519243,
+      34.039184
+     ],
+     [
+      -118.519,
+      34.0385
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 30,
+    "congestionRisk": 0.7,
+    "closureGroup": "sunset_east",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.519,
+      34.0385
+     ],
+     [
+      -118.518204,
+      34.038804
+     ],
+     [
+      -118.517391,
+      34.039081
+     ],
+     [
+      -118.516591,
+      34.039378
+     ],
+     [
+      -118.515825,
+      34.039731
+     ],
+     [
+      -118.51509,
+      34.040133
+     ],
+     [
+      -118.514358,
+      34.04054
+     ],
+     [
+      -118.513601,
+      34.040905
+     ],
+     [
+      -118.512808,
+      34.041215
+     ],
+     [
+      -118.512,
+      34.0415
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 30,
+    "congestionRisk": 0.7,
+    "closureGroup": "sunset_east",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.512,
+      34.0415
+     ],
+     [
+      -118.511178,
+      34.041914
+     ],
+     [
+      -118.510342,
+      34.042306
+     ],
+     [
+      -118.509478,
+      34.042653
+     ],
+     [
+      -118.508589,
+      34.042963
+     ],
+     [
+      -118.507696,
+      34.043265
+     ],
+     [
+      -118.506821,
+      34.043596
+     ],
+     [
+      -118.505977,
+      34.043975
+     ],
+     [
+      -118.505156,
+      34.04439
+     ],
+     [
+      -118.504337,
+      34.04481
+     ],
+     [
+      -118.5035,
+      34.0452
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Sunset Boulevard",
+    "class": "arterial",
+    "speedMph": 30,
+    "congestionRisk": 0.7,
+    "closureGroup": "sunset_east",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5035,
+      34.0452
+     ],
+     [
+      -118.502633,
+      34.045568
+     ],
+     [
+      -118.501764,
+      34.045934
+     ],
+     [
+      -118.500891,
+      34.04629
+     ],
+     [
+      -118.500008,
+      34.046632
+     ],
+     [
+      -118.499117,
+      34.046956
+     ],
+     [
+      -118.498217,
+      34.047266
+     ],
+     [
+      -118.497311,
+      34.047567
+     ],
+     [
+      -118.496405,
+      34.047865
+     ],
+     [
+      -118.495503,
+      34.048171
+     ],
+     [
+      -118.494607,
+      34.048489
+     ],
+     [
+      -118.493722,
+      34.048825
+     ],
+     [
+      -118.492846,
+      34.049178
+     ],
+     [
+      -118.491978,
+      34.049544
+     ],
+     [
+      -118.491113,
+      34.049917
+     ],
+     [
+      -118.490248,
+      34.050288
+     ],
+     [
+      -118.489378,
+      34.050651
+     ],
+     [
+      -118.4885,
+      34.051
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Palisades Drive",
+    "class": "canyon",
+    "speedMph": 34,
+    "congestionRisk": 0.35,
+    "closureGroup": "palisades_dr",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5232,
+      34.0458
+     ],
+     [
+      -118.52349,
+      34.046495
+     ],
+     [
+      -118.52373,
+      34.047206
+     ],
+     [
+      -118.523976,
+      34.047915
+     ],
+     [
+      -118.524284,
+      34.048605
+     ],
+     [
+      -118.524664,
+      34.049273
+     ],
+     [
+      -118.525071,
+      34.049932
+     ],
+     [
+      -118.525444,
+      34.050602
+     ],
+     [
+      -118.525746,
+      34.051293
+     ],
+     [
+      -118.526,
+      34.052
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Palisades Drive",
+    "class": "canyon",
+    "speedMph": 34,
+    "congestionRisk": 0.35,
+    "closureGroup": "palisades_dr",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.526,
+      34.052
+     ],
+     [
+      -118.526586,
+      34.052557
+     ],
+     [
+      -118.527117,
+      34.053151
+     ],
+     [
+      -118.527603,
+      34.053775
+     ],
+     [
+      -118.52809,
+      34.054398
+     ],
+     [
+      -118.528628,
+      34.054988
+     ],
+     [
+      -118.529227,
+      34.055537
+     ],
+     [
+      -118.529853,
+      34.056068
+     ],
+     [
+      -118.530454,
+      34.056616
+     ],
+     [
+      -118.531,
+      34.0572
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Palisades Drive",
+    "class": "canyon",
+    "speedMph": 34,
+    "congestionRisk": 0.35,
+    "closureGroup": "palisades_dr",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.531,
+      34.0572
+     ],
+     [
+      -118.531512,
+      34.057785
+     ],
+     [
+      -118.532015,
+      34.058377
+     ],
+     [
+      -118.532557,
+      34.058942
+     ],
+     [
+      -118.53316,
+      34.059465
+     ],
+     [
+      -118.533797,
+      34.059964
+     ],
+     [
+      -118.534417,
+      34.060476
+     ],
+     [
+      -118.534981,
+      34.061026
+     ],
+     [
+      -118.535494,
+      34.06161
+     ],
+     [
+      -118.536,
+      34.0622
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Palisades Drive",
+    "class": "canyon",
+    "speedMph": 32,
+    "congestionRisk": 0.35,
+    "closureGroup": "palisades_dr",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.536,
+      34.0622
+     ],
+     [
+      -118.536546,
+      34.062857
+     ],
+     [
+      -118.537213,
+      34.063437
+     ],
+     [
+      -118.537895,
+      34.064008
+     ],
+     [
+      -118.538452,
+      34.064658
+     ],
+     [
+      -118.538935,
+      34.065355
+     ],
+     [
+      -118.5395,
+      34.066
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Palisades Drive",
+    "class": "canyon",
+    "speedMph": 30,
+    "congestionRisk": 0.3,
+    "closureGroup": "palisades_dr",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5395,
+      34.066
+     ],
+     [
+      -118.539951,
+      34.066644
+     ],
+     [
+      -118.540466,
+      34.067258
+     ],
+     [
+      -118.540969,
+      34.067878
+     ],
+     [
+      -118.541395,
+      34.068533
+     ],
+     [
+      -118.541746,
+      34.069223
+     ],
+     [
+      -118.542094,
+      34.069914
+     ],
+     [
+      -118.542512,
+      34.070574
+     ],
+     [
+      -118.543,
+      34.0712
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Temescal Canyon Road",
+    "class": "canyon",
+    "speedMph": 30,
+    "congestionRisk": 0.35,
+    "closureGroup": "temescal",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5275,
+      34.0455
+     ],
+     [
+      -118.527917,
+      34.044802
+     ],
+     [
+      -118.528428,
+      34.04415
+     ],
+     [
+      -118.529009,
+      34.043532
+     ],
+     [
+      -118.529546,
+      34.042892
+     ],
+     [
+      -118.529973,
+      34.042199
+     ],
+     [
+      -118.530353,
+      34.041483
+     ],
+     [
+      -118.5308,
+      34.0408
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Temescal Canyon Road",
+    "class": "canyon",
+    "speedMph": 30,
+    "congestionRisk": 0.35,
+    "closureGroup": "temescal",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5308,
+      34.0408
+     ],
+     [
+      -118.531331,
+      34.040187
+     ],
+     [
+      -118.531777,
+      34.039524
+     ],
+     [
+      -118.532232,
+      34.038867
+     ],
+     [
+      -118.532785,
+      34.038266
+     ],
+     [
+      -118.533411,
+      34.03771
+     ],
+     [
+      -118.534003,
+      34.037133
+     ],
+     [
+      -118.5345,
+      34.0365
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Chautauqua Boulevard",
+    "class": "canyon",
+    "speedMph": 27,
+    "congestionRisk": 0.55,
+    "closureGroup": "chautauqua",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.519,
+      34.0385
+     ],
+     [
+      -118.518806,
+      34.037849
+     ],
+     [
+      -118.518749,
+      34.037188
+     ],
+     [
+      -118.518849,
+      34.036513
+     ],
+     [
+      -118.518794,
+      34.035851
+     ],
+     [
+      -118.5186,
+      34.0352
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Chautauqua Boulevard",
+    "class": "canyon",
+    "speedMph": 27,
+    "congestionRisk": 0.55,
+    "closureGroup": "chautauqua",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5186,
+      34.0352
+     ],
+     [
+      -118.518788,
+      34.034456
+     ],
+     [
+      -118.518747,
+      34.033702
+     ],
+     [
+      -118.518632,
+      34.032945
+     ],
+     [
+      -118.5188,
+      34.0322
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Allenford Avenue",
+    "class": "residential",
+    "speedMph": 26,
+    "congestionRisk": 0.45,
+    "closureGroup": "inland",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.4885,
+      34.051
+     ],
+     [
+      -118.488752,
+      34.050313
+     ],
+     [
+      -118.488925,
+      34.049606
+     ],
+     [
+      -118.489087,
+      34.048897
+     ],
+     [
+      -118.489322,
+      34.048206
+     ],
+     [
+      -118.489649,
+      34.047537
+     ],
+     [
+      -118.490002,
+      34.046875
+     ],
+     [
+      -118.490293,
+      34.046198
+     ],
+     [
+      -118.4905,
+      34.0455
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "San Vicente Boulevard",
+    "class": "arterial",
+    "speedMph": 33,
+    "congestionRisk": 0.5,
+    "closureGroup": "inland",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.4905,
+      34.0455
+     ],
+     [
+      -118.491219,
+      34.045026
+     ],
+     [
+      -118.49196,
+      34.044575
+     ],
+     [
+      -118.49272,
+      34.044146
+     ],
+     [
+      -118.49349,
+      34.043726
+     ],
+     [
+      -118.494255,
+      34.043302
+     ],
+     [
+      -118.495002,
+      34.042858
+     ],
+     [
+      -118.495725,
+      34.042389
+     ],
+     [
+      -118.496427,
+      34.041896
+     ],
+     [
+      -118.497117,
+      34.04139
+     ],
+     [
+      -118.49781,
+      34.040888
+     ],
+     [
+      -118.498519,
+      34.040402
+     ],
+     [
+      -118.49925,
+      34.039941
+     ],
+     [
+      -118.5,
+      34.0395
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "San Vicente Boulevard",
+    "class": "arterial",
+    "speedMph": 33,
+    "congestionRisk": 0.5,
+    "closureGroup": "inland",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5,
+      34.0395
+     ],
+     [
+      -118.500703,
+      34.038953
+     ],
+     [
+      -118.50138,
+      34.038384
+     ],
+     [
+      -118.502046,
+      34.037804
+     ],
+     [
+      -118.50272,
+      34.037231
+     ],
+     [
+      -118.503419,
+      34.036682
+     ],
+     [
+      -118.50415,
+      34.03616
+     ],
+     [
+      -118.504905,
+      34.03566
+     ],
+     [
+      -118.505666,
+      34.035166
+     ],
+     [
+      -118.506413,
+      34.034659
+     ],
+     [
+      -118.507133,
+      34.034128
+     ],
+     [
+      -118.507824,
+      34.033571
+     ],
+     [
+      -118.5085,
+      34.033
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "San Vicente Boulevard",
+    "class": "arterial",
+    "speedMph": 32,
+    "congestionRisk": 0.55,
+    "closureGroup": "inland",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5085,
+      34.033
+     ],
+     [
+      -118.509124,
+      34.032389
+     ],
+     [
+      -118.509766,
+      34.031789
+     ],
+     [
+      -118.510324,
+      34.031138
+     ],
+     [
+      -118.510797,
+      34.030435
+     ],
+     [
+      -118.511282,
+      34.02974
+     ],
+     [
+      -118.511862,
+      34.029102
+     ],
+     [
+      -118.5125,
+      34.0285
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "Ocean Avenue / California Incline",
+    "class": "arterial",
+    "speedMph": 28,
+    "congestionRisk": 0.6,
+    "closureGroup": "inland",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5125,
+      34.0285
+     ],
+     [
+      -118.511903,
+      34.027885
+     ],
+     [
+      -118.511318,
+      34.027263
+     ],
+     [
+      -118.510754,
+      34.026629
+     ],
+     [
+      -118.510212,
+      34.02598
+     ],
+     [
+      -118.509687,
+      34.025321
+     ],
+     [
+      -118.50917,
+      34.024657
+     ],
+     [
+      -118.508649,
+      34.023996
+     ],
+     [
+      -118.50811,
+      34.023345
+     ],
+     [
+      -118.507549,
+      34.022709
+     ],
+     [
+      -118.506964,
+      34.022087
+     ],
+     [
+      -118.506361,
+      34.021475
+     ],
+     [
+      -118.505753,
+      34.020868
+     ],
+     [
+      -118.50515,
+      34.020256
+     ],
+     [
+      -118.504564,
+      34.019635
+     ],
+     [
+      -118.504,
+      34.019
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.531,
+      34.0348
+     ],
+     [
+      -118.531,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.52935,
+      34.0348
+     ],
+     [
+      -118.52935,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5277,
+      34.0348
+     ],
+     [
+      -118.5277,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.52605,
+      34.0348
+     ],
+     [
+      -118.52605,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5244,
+      34.0348
+     ],
+     [
+      -118.5244,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.52275,
+      34.0348
+     ],
+     [
+      -118.52275,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5211,
+      34.0348
+     ],
+     [
+      -118.5211,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.51945,
+      34.0348
+     ],
+     [
+      -118.51945,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5178,
+      34.0348
+     ],
+     [
+      -118.5178,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.51615,
+      34.0348
+     ],
+     [
+      -118.51615,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.5145,
+      34.0348
+     ],
+     [
+      -118.5145,
+      34.0462
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "name": "",
+    "class": "residential_visual",
+    "speedMph": 25,
+    "congestionRisk": 0.2,
+    "closureGroup": "none",
+    "approximate": true
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -118.51285,
+      34.0348
+     ],
+     [
+      -118.51285,
+      34.0462
+     ]
+    ]
+   }
+  }
+ ]
+}

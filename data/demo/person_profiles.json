@@ -1,0 +1,41 @@
+{
+ "disclaimer": "SYNTHETIC DEMO DATA approximating publicly reported aspects of the Jan 7, 2025 Palisades Fire. Not official. Not survey accurate. Never use for real navigation. Simulation only \u2014 modeled guidance from demo scenario inputs. Follow official evacuation orders and emergency personnel. Avoid closed roads.",
+ "profiles": [
+  {
+   "id": "standard_adult",
+   "name": "Sample Resident (vehicle)",
+   "description": "Adult evacuating by car; baseline demo profile.",
+   "travelSpeedMph": 26.0,
+   "smokeSensitivity": 0.5,
+   "mobilityScore": 0.9,
+   "prefersFewerTurns": false
+  },
+  {
+   "id": "limited_mobility",
+   "name": "Limited-mobility resident",
+   "description": "Needs simpler maneuvers and gentler roads; higher smoke sensitivity.",
+   "travelSpeedMph": 22.0,
+   "smokeSensitivity": 0.7,
+   "mobilityScore": 0.4,
+   "prefersFewerTurns": true
+  },
+  {
+   "id": "family_children",
+   "name": "Family with children",
+   "description": "Higher smoke sensitivity, moderate speed.",
+   "travelSpeedMph": 24.0,
+   "smokeSensitivity": 0.8,
+   "mobilityScore": 0.7,
+   "prefersFewerTurns": false
+  },
+  {
+   "id": "first_responder",
+   "name": "First responder (reference)",
+   "description": "Reference profile; tolerates smoke, prioritizes time.",
+   "travelSpeedMph": 35.0,
+   "smokeSensitivity": 0.2,
+   "mobilityScore": 1.0,
+   "prefersFewerTurns": false
+  }
+ ]
+}

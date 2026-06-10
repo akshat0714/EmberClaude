@@ -1,0 +1,473 @@
+{
+ "type": "FeatureCollection",
+ "properties": {
+  "disclaimer": "Synthetic fuel/vegetation zones for the demo fire model."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_rustic_canyon",
+    "name": "Rustic Canyon brush (synthetic)",
+    "kind": "canyon_brush",
+    "fuelLoad": 0.6,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.52,
+       34.0335
+      ],
+      [
+       -118.5128,
+       34.0335
+      ],
+      [
+       -118.5122,
+       34.0502
+      ],
+      [
+       -118.5198,
+       34.0502
+      ],
+      [
+       -118.52,
+       34.0335
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_village",
+    "name": "Village landscaping (synthetic)",
+    "kind": "urban_landscaping",
+    "fuelLoad": 0.3,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.533,
+       34.034
+      ],
+      [
+       -118.513,
+       34.034
+      ],
+      [
+       -118.511,
+       34.047
+      ],
+      [
+       -118.532,
+       34.048
+      ],
+      [
+       -118.533,
+       34.034
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_highlands",
+    "name": "Highlands irrigated residential (synthetic)",
+    "kind": "urban_landscaping",
+    "fuelLoad": 0.35,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.544,
+       34.056
+      ],
+      [
+       -118.533,
+       34.056
+      ],
+      [
+       -118.53,
+       34.064
+      ],
+      [
+       -118.536,
+       34.07
+      ],
+      [
+       -118.545,
+       34.068
+      ],
+      [
+       -118.544,
+       34.056
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_temescal_ridge",
+    "name": "Temescal Ridge chaparral (synthetic)",
+    "kind": "chaparral",
+    "fuelLoad": 0.95,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.545,
+       34.085145
+      ],
+      [
+       -118.531374,
+       34.083551
+      ],
+      [
+       -118.527192,
+       34.072517
+      ],
+      [
+       -118.524618,
+       34.064
+      ],
+      [
+       -118.521646,
+       34.05283
+      ],
+      [
+       -118.53452,
+       34.048963
+      ],
+      [
+       -118.545,
+       34.045685
+      ],
+      [
+       -118.55901,
+       34.043898
+      ],
+      [
+       -118.564768,
+       34.054545
+      ],
+      [
+       -118.565975,
+       34.064
+      ],
+      [
+       -118.560969,
+       34.071638
+      ],
+      [
+       -118.555217,
+       34.07866
+      ],
+      [
+       -118.545,
+       34.085145
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_santa_ynez",
+    "name": "Santa Ynez Canyon chaparral (synthetic)",
+    "kind": "chaparral",
+    "fuelLoad": 0.9,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.523,
+       34.085259
+      ],
+      [
+       -118.514986,
+       34.080498
+      ],
+      [
+       -118.505116,
+       34.077553
+      ],
+      [
+       -118.508186,
+       34.069
+      ],
+      [
+       -118.508883,
+       34.062249
+      ],
+      [
+       -118.50917,
+       34.049158
+      ],
+      [
+       -118.523,
+       34.055555
+      ],
+      [
+       -118.535473,
+       34.051104
+      ],
+      [
+       -118.543498,
+       34.059197
+      ],
+      [
+       -118.540542,
+       34.069
+      ],
+      [
+       -118.539788,
+       34.077029
+      ],
+      [
+       -118.530746,
+       34.080113
+      ],
+      [
+       -118.523,
+       34.085259
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_will_rogers",
+    "name": "Will Rogers / Rivas Canyon brush (synthetic)",
+    "kind": "chaparral",
+    "fuelLoad": 0.85,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.503,
+       34.068686
+      ],
+      [
+       -118.49524,
+       34.063004
+      ],
+      [
+       -118.485558,
+       34.059599
+      ],
+      [
+       -118.485504,
+       34.050916
+      ],
+      [
+       -118.491299,
+       34.0446
+      ],
+      [
+       -118.496762,
+       34.035398
+      ],
+      [
+       -118.507071,
+       34.041512
+      ],
+      [
+       -118.518282,
+       34.042029
+      ],
+      [
+       -118.5201,
+       34.050963
+      ],
+      [
+       -118.518289,
+       34.058785
+      ],
+      [
+       -118.511173,
+       34.063536
+      ],
+      [
+       -118.503,
+       34.068686
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_topanga_edge",
+    "name": "Topanga edge chaparral (synthetic)",
+    "kind": "chaparral",
+    "fuelLoad": 0.95,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.572,
+       34.070406
+      ],
+      [
+       -118.561427,
+       34.06963
+      ],
+      [
+       -118.556885,
+       34.061719
+      ],
+      [
+       -118.544592,
+       34.052735
+      ],
+      [
+       -118.552971,
+       34.042339
+      ],
+      [
+       -118.564583,
+       34.035073
+      ],
+      [
+       -118.577953,
+       34.039203
+      ],
+      [
+       -118.588913,
+       34.043858
+      ],
+      [
+       -118.59752,
+       34.05296
+      ],
+      [
+       -118.591905,
+       34.063531
+      ],
+      [
+       -118.581931,
+       34.068802
+      ],
+      [
+       -118.572,
+       34.070406
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_temescal_canyon",
+    "name": "Temescal Canyon corridor (synthetic)",
+    "kind": "canyon_brush",
+    "fuelLoad": 0.8,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.537,
+       34.038
+      ],
+      [
+       -118.527,
+       34.04
+      ],
+      [
+       -118.525,
+       34.048
+      ],
+      [
+       -118.535,
+       34.047
+      ],
+      [
+       -118.537,
+       34.038
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "veg_coastal_bluff",
+    "name": "Coastal bluff scrub (synthetic)",
+    "kind": "scrub",
+    "fuelLoad": 0.45,
+    "synthetic": true
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -118.56,
+       34.0395
+      ],
+      [
+       -118.518,
+       34.029
+      ],
+      [
+       -118.508,
+       34.021
+      ],
+      [
+       -118.512,
+       34.026
+      ],
+      [
+       -118.55,
+       34.042
+      ],
+      [
+       -118.56,
+       34.043
+      ],
+      [
+       -118.56,
+       34.0395
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}
